@@ -17,9 +17,10 @@ Fitting th edistribution is not yet possible.
 
 # Examples
 ```julia-repl
-julia> dist = MultivariateGamma(2,[3,4,5]);
-julia> sample = zeros(Float64,(3,10));
+julia> dist = MultivariateGammaConvolution([2,3,1],[3 0;4 0;0 1]);
+julia> sample = zeros(Float64,(2,10));
 julia> Random.rand!(dist,sample);
+
 ```
 """
 struct MultivariateGammaConvolution{T<:Real} <: Distributions.ContinuousMultivariateDistribution where T
@@ -105,11 +106,11 @@ end
 
 # Okay this should be enough to obtain a pdf
 
-dist = MultivariateGammaConvolution([2,3,1],[3 0;4 0;0 1])
-sample = zeros(Float64,(2,10))
-import Random
-Random.rand!(dist,sample)
-display(sample)
+# dist = MultivariateGammaConvolution([2,3,1],[3 0;4 0;0 1])
+# sample = zeros(Float64,(2,10))
+# import Random
+# Random.rand!(dist,sample)
+# display(sample)
 #
 #
 # display(Distributions.pdf(dist,sample))
