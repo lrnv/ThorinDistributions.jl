@@ -64,7 +64,7 @@ function Distributions.insupport(d::MultivariateGamma,x::AbstractVector{T}) wher
 end
 
 #### Sampling
-struct MGSPL <: Distributions.Sampleable{Multivariate,Continuous}
+struct MGSPL <: Distributions.Sampleable{Distributions.Multivariate,Distributions.Continuous}
     α
     θ
     Γα

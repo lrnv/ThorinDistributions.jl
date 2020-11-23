@@ -1,9 +1,3 @@
-using Distributions
-import Statistics
-
-na = [CartesianIndex()]
-
-
 """
     MultivariateGammaConvolution(α,θ)
 
@@ -62,7 +56,7 @@ function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{
          end
      end
      if length(α) == 1
-         return Distributions.MultivariateGamma(α,θ[:,1])
+         return MultivariateGamma(α,θ[:,1])
      end
      return MultivariateGammaConvolution(α,θ, 1)
 end
@@ -73,12 +67,12 @@ MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2}) wher
 #### eltype, length, support
 eltype(d::MultivariateGammaConvolution) = typeof(d.α)
 Base.length(d::MultivariateGammaConvolution) = size(d.θ,2)
-function Distributions.insupport(d::MultivariateGamma,x::AbstractVector{T}) where {T <: Real}
+function Distributions.insupport(d::MultivariateGammaConvolution,x::AbstractVector{T}) where {T <: Real}
     return all(x > T(0))
 end
 
 #### Sampling
-struct MGCSPL <: Distributions.Sampleable{Multivariate,Continuous}
+struct MGCSPL <: Distributions.Sampleable{Distributions.Multivariate,Distributions.Continuous}
     Γs::AbstractVector{MGSPL}
 end
 Distributions.sampler(d::MultivariateGammaConvolution) = MGCSPL([Distributions.sampler(MultivariateGamma(d.α[i],d.θ[i,:])) for i in 1:length(d.α)])
@@ -91,7 +85,7 @@ function Distributions._rand!(rng::Distributions.AbstractRNG, s::MGCSPL, x::Abst
 end
 
 #### Logpdf
-function Distributions._logpdf(d::MultivariateGamma{T}, x::AbstractArray) where T<:Real
+function Distributions._logpdf(d::MultivariateGammaConvolution{T}, x::AbstractArray) where T<:Real
     if !insupport(d,x)
         return T(-Inf)
     end

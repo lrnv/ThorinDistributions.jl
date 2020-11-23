@@ -16,8 +16,8 @@ these quatities might be needed later...
 function PreComp(precision, m)
         setprecision(precision)
         m = big(m)
-        BINS = zeros(eltype(m),(m,m))
-        FACTS = zeros(eltype(m),m)
+        BINS = zeros(Base.eltype(m),(m,m))
+        FACTS = zeros(Base.eltype(m),m)
         LAGUERRE = zeros(BigFloat,(m,m))
         for i in 1:m
             FACTS[i] = factorial(i-1)
@@ -52,8 +52,8 @@ function get_coefficients(α, θ, m)
     α = α[are_pos]
 
     # Allocates ressources, construct the simplex expression of the θ and the indexes.
-    coefs = zeros(eltype(α),m)
-    kappa = zeros(eltype(α),size(coefs))
+    coefs = zeros(Base.eltype(α),m)
+    kappa = zeros(Base.eltype(α),size(coefs))
     mu = deepcopy(kappa)
     n = size(θ)[1]
     d = ndims(coefs)
@@ -136,7 +136,7 @@ end
 Given some laguerre coefficients, computes the correpsonding function at the point x.
 """
 function laguerre_density(x,coefs)
-    rez = zero(eltype(coefs))
+    rez = zero(Base.eltype(coefs))
     for p in CartesianIndices(coefs)
         rez += coefs[p] * prod(laguerre_phi.(x,Tuple(p) .-1))
     end
@@ -158,12 +158,12 @@ function laguerre_phi_several_pts(x,max_p)
 
 
     d,n = size(x)
-    rez = ones(eltype(x),(n,max_p...))
+    rez = ones(Base.eltype(x),(n,max_p...))
     na = [CartesianIndex()]
     MP = maximum(max_p)
 
     println("Computing laguerre_L")
-    laguerre_L = zeros(eltype(x),(d,MP,n))
+    laguerre_L = zeros(Base.eltype(x),(d,MP,n))
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
     Threads.@threads for p in 1:MP
         laguerre_L[:,p:p,:] = dropdims(sum(-P.LAGUERRE[p:p,1:MP][na,:,:,na] .* powers[:,na,:,:],dims=3),dims=3)
@@ -196,7 +196,7 @@ end
 
 function old_empirical_coefs(x,maxp)
     # More readable, but very very slow.
-    coefs = zeros(eltype(x),maxp)
+    coefs = zeros(Base.eltype(x),maxp)
     n = last(size(x))
     Threads.@threads for p in CartesianIndices(maxp)
         for i in 1:n
