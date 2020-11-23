@@ -191,7 +191,7 @@ end
 Compute the empirical laguerre coefficients of the density of the random vector x, given as a Matrix with n row (number of samples) and d columns (number of dimensions)
 """
 function empirical_coefs(x,maxp)
-    dropdims(sum(MGCLaguerre.laguerre_phi_several_pts(x,maxp),dims=1)/last(size(x)),dims=1)
+    dropdims(sum(laguerre_phi_several_pts(x,maxp),dims=1)/last(size(x)),dims=1)
 end
 
 function old_empirical_coefs(x,maxp)
@@ -219,7 +219,7 @@ function L2Objective(par, emp_coefs)
     n = Int((size(par)[1])/(d+1))
     α = par[1:n] .^2 #make them positives
     rates = reshape(par[(n+1):(d+1)*n],(n,d)) .^ 2 # make them positives
-    coefs = MGCLaguerre.get_coefficients(α,rates,m)
+    coefs = get_coefficients(α,rates,m)
     return sum((coefs .- emp_coefs) .^2)
 end
 
