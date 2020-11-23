@@ -32,6 +32,12 @@ Constructs a distribution that corresponds to the convolutions of Gamma(α[i],θ
 The distribution can then be used through several methods,
 following the Distributions.jl standard, to obtain pdf, cdf, random samples...
 
+The pdf and cdf are handled by the Moshopoulos algorithm, and random samples by simply adding random gammas.
+The code is type stable and handles any <:Real types, given by the parameters.
+
+To fit the distribution, a loglikelyhood approach could be used. A more involved approach from Furman might be coded sometimes (but requires tanh-sinh integration and bigfloats...)
+
+
 # Examples
 ```julia-repl
 julia> dist = UnivariateGammaConvolution([1,0.5, 3.7],[4,2, 10])
