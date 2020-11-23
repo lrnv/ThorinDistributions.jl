@@ -1,0 +1,3 @@
+var documenterSearchIndex = {"docs":
+[{"location":"","page":"Home","title":"Home","text":"CurrentModule = ThorinDistributions","category":"page"},{"location":"#ThorinDistributions","page":"Home","title":"ThorinDistributions","text":"","category":"section"},{"location":"","page":"Home","title":"Home","text":"","category":"page"},{"location":"","page":"Home","title":"Home","text":"Modules = [ThorinDistributions]","category":"page"},{"location":"#ThorinDistributions.test-Tuple{Any}","page":"Home","title":"ThorinDistributions.test","text":"Docstring of the function test\n\n\n\n\n\n","category":"method"}]
+}
