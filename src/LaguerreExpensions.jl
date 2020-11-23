@@ -210,8 +210,8 @@ end
 """
     L2Objective(par,emp_coefs)
 
-    A L2 distance to be minimized between laguerre coefficients of MultivariateGammaConvolutions and empirical laguerre coefficients.
-    This distance is some kind of very high degree polynomial * exponentials, so minimizing it is very hard.
+A L2 distance to be minimized between laguerre coefficients of MultivariateGammaConvolutions and empirical laguerre coefficients.
+This distance is some kind of very high degree polynomial * exponentials, so minimizing it is very hard.
 """
 function L2Objective(par, emp_coefs)
     m = size(emp_coefs)
@@ -226,9 +226,9 @@ end
 """
     L2ObjectiveWithPenalty(par,emp_coefs)
 
-    A L2 distance to be minimized between laguerre coefficients of MultivariateGammaConvolutions and empirical laguerre coefficients.
-    This distance is some kind of very high degree polynomial * exponentials, so minimizing it is very hard.
-    This version includes a penalty to force parameters to go towards 0. but it is not yet working correctly.
+A L2 distance to be minimized between laguerre coefficients of MultivariateGammaConvolutions and empirical laguerre coefficients.
+This distance is some kind of very high degree polynomial * exponentials, so minimizing it is very hard.
+This version includes a penalty to force parameters to go towards 0. but it is not yet working correctly.
 """
 function L2ObjectiveWithPenalty(par,emp_coefs)
     old_par = par[1:(length(par)-1)]
