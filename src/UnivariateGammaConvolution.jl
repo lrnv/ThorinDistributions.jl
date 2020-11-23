@@ -28,7 +28,7 @@ eltype(P::MoschopoulosParameters) = typeof(P.θ₁)
 """
     UnivariateGammaConvolution(α,θ)
 
-Constructs a distribution that corresponds to the convolutions of Gamma(α[i],θ[i]) distirbutions.
+Constructs a distribution that corresponds to the convolutions of Gamma(α[i],θ[i]) distributions.
 The distribution can then be used through several methods,
 following the Distributions.jl standard, to obtain pdf, cdf, random samples...
 
