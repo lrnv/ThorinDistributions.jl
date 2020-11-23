@@ -18,4 +18,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/lrnv/ThorinDistributions.jl",
+    devbranch="main",
 )
