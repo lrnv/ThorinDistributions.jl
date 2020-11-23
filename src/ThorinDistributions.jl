@@ -3,6 +3,6 @@ module ThorinDistributions
 include("UnivariateGammaConvolution.jl")
 include("MultivariateGamma.jl")
 include("MultivariateGammaConvolution.jl")
-include("ConvolutionsAndproducts.jl")
+include("ConvolutionsAndProducts.jl")
 
 end
