@@ -5,7 +5,7 @@ na = [CartesianIndex()]
 
 
 """
-UnivariateGammaConvolution(α,θ)
+    MultivariateGammaConvolution(α,θ)
 
 Constructs a distribution that corresponds to the convolutions of MutlivariateGamma(α[i],θ[i,:]) distributions.
 The distribution can then be used through several methods, following the Distributions.jl standard

@@ -4,7 +4,7 @@ import Statistics
 na = [CartesianIndex()]
 
 """
-UnivariateGammaConvolution(α,θ)
+    MultivariateGamma(α,θ)
 
 Construct a distribution that correspond to several comonotonous gammas with common shapes α and respectives scales θ[i].
 The distribution can then be used through several methods,

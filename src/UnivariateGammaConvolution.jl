@@ -40,14 +40,7 @@ To fit the distribution, a loglikelyhood approach could be used. A more involved
 
 # Examples
 ```julia-repl
-julia> dist = UnivariateGammaConvolution([1,0.5, 3.7],[4,2, 10])
-UnivariateGammaConvolution{Float64}(
-α: [1.0, 0.5, 3.7]
-θ: [4.0, 2.0, 10.0]
-P: MoschopoulosParameters{Float64}(2.0, 771.2923284000123, [0.5, 0.0, 0.8], [3.4600000000000004], 5.2, [1.0])
-)
-
-
+julia> dist = UnivariateGammaConvolution([1,0.5, 3.7],[4,2, 10]);
 julia> sample = zeros(Float64,10);
 julia> Random.rand!(dist,sample);
 julia> pdf.((dist,),sample);
