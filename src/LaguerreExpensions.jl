@@ -60,7 +60,7 @@ function get_coefficients(α, θ, m)
     I = CartesianIndices(coefs)
     na = [CartesianIndex()]
     S = θ ./ (big(1.0) .+ sum(θ,dims=2))
-    S_pow = S[na,:,:] .^ (0:maximum(m))[:,na,na]
+    S_pow = S[na,:,:] .^ (0:Base.maximum(m))[:,na,na]
 
     # Edge case for the Oth cumulant, 0th moment and 0th coef:
     kappa[1] = sum(α .* log.(big(1.0) .- sum(S,dims=2)))
@@ -160,7 +160,7 @@ function laguerre_phi_several_pts(x,max_p)
     d,n = size(x)
     rez = ones(Base.eltype(x),(n,max_p...))
     na = [CartesianIndex()]
-    MP = maximum(max_p)
+    MP = Base.maximum(max_p)
 
     println("Computing laguerre_L")
     laguerre_L = zeros(Base.eltype(x),(d,MP,n))
