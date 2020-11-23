@@ -3,6 +3,9 @@ uuid = "939a8ac6-5ed4-439a-9e85-9cbf7c2ce175"
 authors = ["Oskar Laverny"]
 version = "0.1.0"
 
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
 [compat]
 julia = "1.5.2"
 
