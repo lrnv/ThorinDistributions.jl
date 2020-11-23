@@ -1,8 +1,3 @@
-using Distributions
-import Statistics
-
-na = [CartesianIndex()]
-
 """
     MultivariateGamma(α,θ)
 

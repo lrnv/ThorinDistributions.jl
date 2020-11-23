@@ -1,6 +1,4 @@
 
-using Distributions
-# Deal wich moshopoulos parameters :
 mutable struct MoschopoulosParameters{T}
         θ₁::T
         C::T
