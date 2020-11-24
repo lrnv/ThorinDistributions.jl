@@ -189,20 +189,8 @@ end
 Compute the empirical laguerre coefficients of the density of the random vector x, given as a Matrix with n row (number of samples) and d columns (number of dimensions)
 """
 function empirical_coefs(x,maxp)
-    dropdims(sum(laguerre_phi_several_pts(x,maxp),dims=1)/last(size(x)),dims=1)
-end
-
-function old_empirical_coefs(x,maxp)
-    # More readable, but very very slow.
-    coefs = zeros(Base.eltype(x),maxp)
-    n = last(size(x))
-    Threads.@threads for p in CartesianIndices(maxp)
-        for i in 1:n
-            coefs[p] += prod(laguerre_phi.(x[:,i],Tuple(p) .-1))
-        end
-        print(p,"\n")
-    end
-    return coefs ./ n
+    x = Double64.(x)
+    return dropdims(sum(laguerre_phi_several_pts(x,maxp),dims=1)/last(size(x)),dims=1)
 end
 
 """
