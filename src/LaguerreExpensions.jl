@@ -1,11 +1,9 @@
-struct PreComp{Tb,Tl,Tf,Tp,Tm}
+struct PreComp{Tb,Tl,Tf,Tm}
     BINS::Tb
     LAGUERRE::Tl
     FACTS::Tf
-    PREC::Tp
     MAX_SUM_OF_M::Tm
 end
-
 
 """
     PreComp(precision,m)
@@ -13,29 +11,32 @@ end
 Given a precison of computations and a tuple m which gives the size of the future laguerre basis, this fonctions precomputes certain quatities
 these quatities might be needed later...
 """
-function PreComp(precision, m)
-        setprecision(precision)
-        m = big(m)
-        BINS = zeros(Base.eltype(m),(m,m))
-        FACTS = zeros(Base.eltype(m),m)
-        LAGUERRE = zeros(BigFloat,(m,m))
-        for i in 1:m
-            FACTS[i] = factorial(i-1)
-        end
-        for i in 1:m, j in 1:m
-            if j <= i
-                BINS[i,j] = binomial(i-1,j-1)
-                LAGUERRE[i,j] = -BINS[i,j]/FACTS[j]*(-big(2.0))^(j-1)
-            end
-        end
-       PreComp(BINS,LAGUERRE,FACTS,precision,m)
+function PreComp(m)
+    setprecision(1024)
+    m = big(m)
+    BINS = zeros(BigInt,(m,m))
+    FACTS = zeros(BigInt,m)
+    LAGUERRE = zeros(BigFloat,(m,m))
+    for i in 1:m
+        FACTS[i] = factorial(i-1)
+    end
+    for i in 1:m, j in 1:m
+        BINS[i,j] = binomial(i-1,j-1)
+        LAGUERRE[i,j] = -BINS[i,j]/FACTS[j]*(-big(2))^(j-1)
+    end
+    T = Double64
+    BINS = T.(BINS)
+    LAGUERRE = T.(LAGUERRE)
+    FACTS = T.(FACTS)
+    PreComp(BINS,LAGUERRE,FACTS,m)
 end
-const P = PreComp(1024,100)
+
+const P = PreComp(100)
 
 """
     get_coefficients(α,θ,m)
 
-α should be a vector of shapes of length n, θ should be a matrix of scales of size (n,d) for a MultivariateGammaConvolution with d marginals.
+α should be a vector of shapes of length n, θ should be a matrix of θ of size (n,d) for a MultivariateGammaConvolution with d marginals.
 
 This function produce the coefficients of the multivariate (tensorised) expensions of the density. It is type stable and quite optimized.
 it is based on some precomputations that are done in a certain precision.
@@ -45,6 +46,9 @@ function get_coefficients(α, θ, m)
     # α must be an array with size (n,)
     # θ must be an array with size (n,d)
     # max_p must be a Tuple of integers with size (d,)
+    T = Double64
+    α = T.(α)
+    θ = T.(θ)
 
     # Trim down null αs values:
     are_pos = α .!= 0
@@ -52,19 +56,19 @@ function get_coefficients(α, θ, m)
     α = α[are_pos]
 
     # Allocates ressources, construct the simplex expression of the θ and the indexes.
-    coefs = zeros(Base.eltype(α),m)
-    kappa = zeros(Base.eltype(α),size(coefs))
-    mu = deepcopy(kappa)
+    coefs = zeros(T,m)
+    κ = deepcopy(coefs)
+    μ = deepcopy(coefs)
     n = size(θ)[1]
     d = ndims(coefs)
     I = CartesianIndices(coefs)
     na = [CartesianIndex()]
-    S = θ ./ (big(1.0) .+ sum(θ,dims=2))
+    S = θ ./ (T(1) .+ sum(θ,dims=2))
     S_pow = S[na,:,:] .^ (0:Base.maximum(m))[:,na,na]
 
     # Edge case for the Oth cumulant, 0th moment and 0th coef:
-    kappa[1] = sum(α .* log.(big(1.0) .- sum(S,dims=2)))
-    coefs[1] = mu[1] = exp(kappa[1])
+    κ[1] = sum(α .* log.(T(1) .- sum(S,dims=2)))
+    coefs[1] = mu[1] = exp(κ[1])
 
     for k in I[2:length(I)]
         # Indices and organisation
@@ -78,16 +82,16 @@ function get_coefficients(α, θ, m)
             for j in 1:d
                 rez *= S_pow[k[j],i,j]
             end
-            kappa[k] += rez
+            κ[k] += rez
         end
-        kappa[k] *= P.FACTS[sk-d]
+        κ[k] *= P.FACTS[sk-d]
 
         for j in CartesianIndices(k)
             add_mu = j[degree] < k[degree]
             if add_mu
-                rez_mu = mu[j] * kappa[k - j + I[1]]
+                rez_mu = μ[j] * κ[k - j + I[1]]
             end
-            rez_coefs = mu[j]
+            rez_coefs = μ[j]
             for i in 1:d
 
                 if add_mu
@@ -96,18 +100,12 @@ function get_coefficients(α, θ, m)
                 rez_coefs *= P.LAGUERRE[k[i], j[i]]
             end
             if add_mu
-                mu[k] += rez_mu
+                μ[k] += rez_mu
             end
             coefs[k] += rez_coefs
         end
-
-        # OLD VERSION DO NOT DELETE
-        # kappa[k] = P.FACTS[sk-d] * sum(α .* prod(S .^ transpose(k_arr .- 1),dims=2))
-        # @inbounds mu[k]    = sum(mu[j] * kappa[k-j+I[1]] * prod(P.BINS[i,j] for (i,j) in zip(k_minus_one_in_deg, Tuple(j))) for j in CartesianIndices(Tuple(k_minus_one_in_deg)))
-        # @inbounds coefs[k] = sum(mu[j] * prod(P.LAGUERRE[i,j]               for (i,j) in zip(k_arr,              Tuple(j))) for j in CartesianIndices(k))
-
     end
-    coefs *= sqrt(big(2.0))^d
+    coefs *= sqrt(T(2))^d
     return coefs
 end
 
@@ -263,5 +261,5 @@ end
 Computes the minimum integer m such that m^d > (d+1)n
 """
 function minimum_m(n,d)
-    return ceil(((d+1)n)^(1/d))
+    return Int(ceil(((d+1)n)^(1/d)))
 end
