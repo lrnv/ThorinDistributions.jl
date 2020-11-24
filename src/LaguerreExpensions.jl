@@ -65,7 +65,11 @@ function get_coefficients(α, θ, m)
     na = [CartesianIndex()]
     S = θ ./ (T(1) .+ sum(θ,dims=2))
     # all S must be smaller than one, and sum maximum to 1
-    S[:,sum(S,dims=2).>T(1)] .-= eps(T)
+    for i in 1:size(S,2)
+        if sum(S[:,i]) > T(1)
+            S[:,i] .-= 2*eps(T)
+        end
+    end
     S_pow = S[na,:,:] .^ (0:Base.maximum(m))[:,na,na]
 
     # Edge case for the Oth cumulant, 0th moment and 0th coef:
