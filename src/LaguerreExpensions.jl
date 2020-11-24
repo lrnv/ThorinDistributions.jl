@@ -6,7 +6,7 @@ struct PreComp{Tb,Tl,Tf,Tm}
 end
 
 """
-    PreComp(precision,m)
+    PreComp(m)
 
 Given a precison of computations and a tuple m which gives the size of the future laguerre basis, this fonctions precomputes certain quatities
 these quatities might be needed later...
@@ -68,7 +68,7 @@ function get_coefficients(α, θ, m)
 
     # Edge case for the Oth cumulant, 0th moment and 0th coef:
     κ[1] = sum(α .* log.(T(1) .- sum(S,dims=2)))
-    coefs[1] = mu[1] = exp(κ[1])
+    coefs[1] = μ[1] = exp(κ[1])
 
     for k in I[2:length(I)]
         # Indices and organisation
