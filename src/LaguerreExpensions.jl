@@ -64,9 +64,12 @@ function get_coefficients(α, θ, m)
     I = CartesianIndices(coefs)
     na = [CartesianIndex()]
     S = θ ./ (T(1) .+ sum(θ,dims=2))
+    # all S must be smaller than one, and sum maximum to 1
+    S[:,sum(S,dims=2)>T(1)]-=eps(T)
     S_pow = S[na,:,:] .^ (0:Base.maximum(m))[:,na,na]
 
     # Edge case for the Oth cumulant, 0th moment and 0th coef:
+    # this log sometimes fails, when sum(S,dims=2) is greater than 1. For this, we might add a restriction here.
     κ[1] = sum(α .* log.(T(1) .- sum(S,dims=2)))
     coefs[1] = μ[1] = exp(κ[1])
 
