@@ -13,14 +13,14 @@ these quatities might be needed later...
 """
 function PreComp(m)
     setprecision(1024)
-    m = big(m)
+    bigm = big(m)
     BINS = zeros(BigInt,(m,m))
     FACTS = zeros(BigInt,m)
     LAGUERRE = zeros(BigFloat,(m,m))
-    for i in 1:m
+    for i in 1:bigm
         FACTS[i] = factorial(i-1)
     end
-    for i in 1:m, j in 1:m
+    for i in 1:bigm, j in 1:bigm
         BINS[i,j] = binomial(i-1,j-1)
         LAGUERRE[i,j] = -BINS[i,j]/FACTS[j]*(-big(2))^(j-1)
     end
@@ -64,22 +64,24 @@ function get_coefficients(α, θ, m)
     I = CartesianIndices(coefs)
     na = [CartesianIndex()]
     S = θ ./ (T(1) .+ sum(θ,dims=2))
+
     # all S must be smaller than one, and sum maximum to 1
+    # this is there for robustness purposes.
     for i in 1:size(S,2)
         if sum(S[:,i]) > T(1)
             S[:,i] .-= 2*eps(T)
         end
     end
-    S_pow = S[na,:,:] .^ (0:Base.maximum(m))[:,na,na]
+    S_pow = [s^k for k in (0:maximum(m)), s in S]
 
     # Edge case for the Oth cumulant, 0th moment and 0th coef:
     # this log sometimes fails, when sum(S,dims=2) is greater than 1. For this, we might add a restriction here.
     κ[1] = sum(α .* log.(T(1) .- sum(S,dims=2)))
     coefs[1] = μ[1] = exp(κ[1])
 
-    for k in I[2:length(I)]
+    @inbounds for k in I[2:length(I)]
         # Indices and organisation
-        k_arr = [ki for ki in Tuple(k)]
+        k_arr = Tuple(k)
         degree = findfirst(k_arr .!= 1)
         sk = sum(k_arr)
 
@@ -94,20 +96,19 @@ function get_coefficients(α, θ, m)
         κ[k] *= P.FACTS[sk-d]
 
         for j in CartesianIndices(k)
-            add_mu = j[degree] < k[degree]
-            if add_mu
+            if j[degree] < k[degree]
                 rez_mu = μ[j] * κ[k - j + I[1]]
-            end
-            rez_coefs = μ[j]
-            for i in 1:d
-
-                if add_mu
-                    rez_mu *= i==degree ? P.BINS[k[i]-1, j[i]] : P.BINS[k[i], j[i]]
+                rez_coefs = μ[j]
+                for i in 1:d
+                    rez_mu *= P.BINS[k[i]-Int(i==degree), j[i]]
+                    rez_coefs *= P.LAGUERRE[k[i], j[i]]
                 end
-                rez_coefs *= P.LAGUERRE[k[i], j[i]]
-            end
-            if add_mu
                 μ[k] += rez_mu
+            else
+                rez_coefs = μ[j]
+                for i in 1:d
+                    rez_coefs *= P.LAGUERRE[k[i], j[i]]
+                end
             end
             coefs[k] += rez_coefs
         end
