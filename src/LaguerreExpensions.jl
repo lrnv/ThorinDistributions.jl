@@ -72,7 +72,7 @@ function get_coefficients(α, θ, m)
             S[:,i] .-= 2*eps(T)
         end
     end
-    S_pow = [s^k for k in (0:maximum(m)), s in S]
+    S_pow = [s^k for k in (0:Base.maximum(m)), s in S]
 
     # Edge case for the Oth cumulant, 0th moment and 0th coef:
     # this log sometimes fails, when sum(S,dims=2) is greater than 1. For this, we might add a restriction here.
