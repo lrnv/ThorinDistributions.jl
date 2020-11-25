@@ -171,7 +171,7 @@ function laguerre_phi_several_pts(x,max_p)
     MP = Base.maximum(max_p)
 
     println("Computing laguerre_L")
-    laguerre_L = zeros(Base.eltype(x),(d,MP,n))
+    laguerre_L = zeros(T,(d,MP,n))
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
     Threads.@threads for p in 1:MP
         laguerre_L[:,p:p,:] = dropdims(sum(-P.LAGUERRE[p:p,1:MP][na,:,:,na] .* powers[:,na,:,:],dims=3),dims=3)
@@ -190,7 +190,10 @@ function laguerre_phi_several_pts(x,max_p)
         end
         print(p,"\n")
     end
-    return rez .* sqrt(T(2))^d .* exponentials
+
+    # Overflow correction:
+    rez = rez .* sqrt(T(2))^d .* exponentials
+    return rez[.!isnan.(sum(rez,2)),:]
 end
 
 """
@@ -200,7 +203,8 @@ Compute the empirical laguerre coefficients of the density of the random vector 
 """
 function empirical_coefs(x,maxp)
     x = Double64.(x)
-    return dropdims(sum(laguerre_phi_several_pts(x,maxp),dims=1)/last(size(x)),dims=1)
+    y = laguerre_phi_several_pts(x,maxp)
+    return dropdims(sum(y,dims=1)/size(y,1),dims=1)
 end
 
 """
