@@ -46,7 +46,7 @@ function get_coefficients(α, θ, m)
     # α must be an array with size (n,)
     # θ must be an array with size (n,d)
     # max_p must be a Tuple of integers with size (d,)
-    T = Double64
+    T = Base.promote_eltype(α,θ)
     α = T.(α)
     θ = T.(θ)
 
