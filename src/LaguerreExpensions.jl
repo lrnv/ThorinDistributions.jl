@@ -164,7 +164,9 @@ function laguerre_phi_several_pts(x,max_p)
 
 
     d,n = size(x)
-    rez = ones(Base.eltype(x),(n,max_p...))
+    T = Base.eltype(x)
+
+    rez = ones(T,(n,max_p...))
     na = [CartesianIndex()]
     MP = Base.maximum(max_p)
 
@@ -188,7 +190,7 @@ function laguerre_phi_several_pts(x,max_p)
         end
         print(p,"\n")
     end
-    return rez .* sqrt(big(2))^d .* exponentials
+    return rez .* sqrt(T(2))^d .* exponentials
 end
 
 """
@@ -233,23 +235,23 @@ function L2ObjectiveWithPenalty(par,emp_coefs)
 end
 
 
-function get_uniform_x0(n,d)
-    θ = zeros(BigFloat, (n,d+1))
-    Random.rand!(θ)
-    θ = -log.(θ) # exponentials
-    θ ./= sum(θ, dims=2) # rowsums = 1
-    θ = θ[:,1:d] # uniform on the simplex.
-    θ ./= (big(1.0) .- sum(θ,dims=2))
-    θ = sqrt.(θ)
-
-    αs = zeros(BigFloat,(n,))
-    Random.rand!(αs)
-    αs = - log.(αs)
-
-    # Finaly, merge the two:
-    par = vcat(αs,reshape(θ,(n*d)))
-    return par
-end
+# function get_uniform_x0{T}(n,d) where T
+#     θ = zeros(T, (n,d+1))
+#     Random.rand!(θ)
+#     θ = -log.(θ) # exponentials
+#     θ ./= sum(θ, dims=2) # rowsums = 1
+#     θ = θ[:,1:d] # uniform on the simplex.
+#     θ ./= (T(1) .- sum(θ,dims=2))
+#     θ = sqrt.(θ)
+#
+#     αs = zeros(T,(n,))
+#     Random.rand!(αs)
+#     αs = - log.(αs)
+#
+#     # Finaly, merge the two:
+#     par = vcat(αs,reshape(θ,(n*d)))
+#     return par
+# end
 
 """
     minimum_m(n,d)
