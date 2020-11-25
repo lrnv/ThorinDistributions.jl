@@ -193,7 +193,7 @@ function laguerre_phi_several_pts(x,max_p)
 
     # Overflow correction:
     rez = rez .* sqrt(T(2))^d .* exponentials
-    rez = rez[.!isnan.(sum(rez,2)),:]
+    rez = rez[[!isnan(sum(rez[i,:])) for i in 1:size(rez,1)],:]
     return rez
 end
 
