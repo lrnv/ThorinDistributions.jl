@@ -1,3 +1,6 @@
+setprecision(ArbFloat,bits=256)
+const ArbT = ArbFloat{256}
+
 struct PreComp{Tb,Tl,Tf,Tm}
     BINS::Tb
     LAGUERRE::Tl
@@ -12,26 +15,24 @@ Given a precison of computations and a tuple m which gives the size of the futur
 these quatities might be needed later...
 """
 function PreComp(m)
-    setprecision(1024)
-    bigm = big(m)
+    setprecision(2048)
+    m = big(m)
     BINS = zeros(BigInt,(m,m))
     FACTS = zeros(BigInt,m)
     LAGUERRE = zeros(BigFloat,(m,m))
-    for i in 1:bigm
+    for i in 1:m
         FACTS[i] = factorial(i-1)
     end
-    for i in 1:bigm, j in 1:bigm
-        BINS[i,j] = binomial(i-1,j-1)
-        LAGUERRE[i,j] = -BINS[i,j]/FACTS[j]*(-big(2))^(j-1)
+    for i in 1:m, j in 1:m
+        BINS[j,i] = binomial(i-1,j-1)
+        LAGUERRE[j,i] = -BINS[j,i]/FACTS[j]*(-big(2))^(j-1)
     end
-    T = Double64
-    BINS = T.(BINS)
-    LAGUERRE = T.(LAGUERRE)
-    FACTS = T.(FACTS)
-    PreComp(BINS,LAGUERRE,FACTS,m)
+    BINS = ArbT.(BINS)
+    LAGUERRE = ArbT.(LAGUERRE)
+    FACTS = ArbT.(FACTS)
+    PreComp(BINS,LAGUERRE,FACTS,ArbT(m))
 end
-
-const P = PreComp(100)
+const P = PreComp(200)
 
 """
     get_coefficients(α,θ,m)
@@ -46,40 +47,31 @@ function get_coefficients(α, θ, m)
     # α must be an array with size (n,)
     # θ must be an array with size (n,d)
     # max_p must be a Tuple of integers with size (d,)
-    T = Base.promote_eltype(α,θ)
-    α = T.(α)
-    θ = T.(θ)
+    entry_type = Base.promote_eltype(α,θ,[1.0]) # At least float.
+    α = ArbT.(α)
+    θ = ArbT.(θ)
 
     # Trim down null αs values:
     are_pos = α .!= 0
     θ = θ[are_pos,:]
     α = α[are_pos]
 
-    # Allocates ressources, construct the simplex expression of the θ and the indexes.
-    coefs = zeros(T,m)
+    # Allocates ressources
+    coefs = zeros(ArbT,m)
     κ = deepcopy(coefs)
     μ = deepcopy(coefs)
     n = size(θ)[1]
-    d = ndims(coefs)
+    d = length(m)
     I = CartesianIndices(coefs)
-    na = [CartesianIndex()]
     S = θ ./ (T(1) .+ sum(θ,dims=2))
-
-    # all S must be smaller than one, and sum maximum to 1
-    # this is there for robustness purposes.
-    for i in 1:size(S,2)
-        if sum(S[:,i]) > T(1)
-            S[:,i] .-= 2*eps(T)
-        end
-    end
     S_pow = [s^k for k in (0:Base.maximum(m)), s in S]
 
-    # Edge case for the Oth cumulant, 0th moment and 0th coef:
-    # this log sometimes fails, when sum(S,dims=2) is greater than 1. For this, we might add a restriction here.
-    κ[1] = sum(α .* log.(T(1) .- sum(S,dims=2)))
+    # Starting the algorithm: there is an edge case for the Oth cumulant, 0th moment and 0th coef:
+    κ[1] = sum(α .* log.(ArbT(1) .- sum(S,dims=2))) # this log fails ifsum(S,dims=2) is greater than 1, which should not happend.
+
     coefs[1] = μ[1] = exp(κ[1])
 
-    @inbounds for k in I[2:length(I)]
+    for k in I[2:length(I)]
         # Indices and organisation
         k_arr = Tuple(k)
         degree = findfirst(k_arr .!= 1)
@@ -96,25 +88,24 @@ function get_coefficients(α, θ, m)
         κ[k] *= P.FACTS[sk-d]
 
         for j in CartesianIndices(k)
+            rez_coefs = μ[j]
             if j[degree] < k[degree]
                 rez_mu = μ[j] * κ[k - j + I[1]]
-                rez_coefs = μ[j]
                 for i in 1:d
-                    rez_mu *= P.BINS[k[i]-Int(i==degree), j[i]]
-                    rez_coefs *= P.LAGUERRE[k[i], j[i]]
+                    rez_mu *= P.BINS[j[i],k[i]-Int(i==degree)]
+                    rez_coefs *= P.LAGUERRE[j[i], k[i]]
                 end
                 μ[k] += rez_mu
             else
-                rez_coefs = μ[j]
                 for i in 1:d
-                    rez_coefs *= P.LAGUERRE[k[i], j[i]]
+                    rez_coefs *= P.LAGUERRE[j[i], k[i]]
                 end
             end
             coefs[k] += rez_coefs
         end
     end
     coefs *= sqrt(T(2))^d
-    return coefs
+    return entry_type.(coefs)
 end
 
 
@@ -203,9 +194,10 @@ end
 Compute the empirical laguerre coefficients of the density of the random vector x, given as a Matrix with n row (number of samples) and d columns (number of dimensions)
 """
 function empirical_coefs(x,maxp)
-    x = Double64.(x)
+    entry_type = Base.promote_eltype(x,[1.0])
+    x = T.(x)
     y = laguerre_phi_several_pts(x,maxp)
-    return dropdims(sum(y,dims=1)/size(y,1),dims=1)
+    return entry_type.(dropdims(sum(y,dims=1)/size(y,1),dims=1))
 end
 
 """

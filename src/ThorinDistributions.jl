@@ -3,7 +3,7 @@ module ThorinDistributions
 import Distributions
 import Random
 import Statistics
-using DoubleFloats
+using ArbNumerics
 
 na = [CartesianIndex()]
 
