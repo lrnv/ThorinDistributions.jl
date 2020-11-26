@@ -153,23 +153,17 @@ function laguerre_phi_several_pts(x,max_p)
     # This is a lot more efficient than broadcasting the laguerre_phi function,
     # but this is ugly in the sens that we re-wrote some of the code.
 
-
     d,n = size(x)
-    T = Base.eltype(x)
-
-    rez = ones(T,(n,max_p...))
+    rez = ones(ArbT,(n,max_p...))
     na = [CartesianIndex()]
     MP = Base.maximum(max_p)
 
     println("Computing laguerre_L")
-    laguerre_L = zeros(T,(d,MP,n))
+    laguerre_L = zeros(ArbT,(d,MP,n))
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
     Threads.@threads for p in 1:MP
         laguerre_L[:,p:p,:] = dropdims(sum(-P.LAGUERRE[p:p,1:MP][na,:,:,na] .* powers[:,na,:,:],dims=3),dims=3)
     end
-
-
-    #laguerre_L = dropdims(sum(-P.LAGUERRE[1:MP,1:MP][na,:,:,na] .* powers[:,na,:,:],dims=3),dims=3) # (d,Mp,n)
 
     println("Computing exponentials...")
     exponentials = dropdims(exp.(-sum(x,dims=1)),dims=1)
