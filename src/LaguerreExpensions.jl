@@ -199,7 +199,7 @@ function old_empirical_coefs(x,maxp)
     x = ArbT.(x)
     coefs = zeros(Base.eltype(x),maxp)
     n = last(size(x))
-    Threads.@threads for p in CartesianIndices(maxp)
+    for p in CartesianIndices(maxp)
         for i in 1:n
             coefs[p] += prod(laguerre_phi.(x[:,i],Tuple(p) .-1))
         end
