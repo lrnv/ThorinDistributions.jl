@@ -63,7 +63,7 @@ function get_coefficients(α, θ, m)
     n = size(θ)[1]
     d = length(m)
     I = CartesianIndices(coefs)
-    S = θ ./ (T(1) .+ sum(θ,dims=2))
+    S = θ ./ (ArbT(1) .+ sum(θ,dims=2))
     S_pow = [s^k for k in (0:Base.maximum(m)), s in S]
 
     # Starting the algorithm: there is an edge case for the Oth cumulant, 0th moment and 0th coef:
@@ -104,7 +104,7 @@ function get_coefficients(α, θ, m)
             coefs[k] += rez_coefs
         end
     end
-    coefs *= sqrt(T(2))^d
+    coefs *= sqrt(ArbT(2))^d
     return entry_type.(coefs)
 end
 
@@ -183,7 +183,7 @@ function laguerre_phi_several_pts(x,max_p)
     end
 
     # Overflow correction:
-    rez = rez .* sqrt(T(2))^d .* exponentials
+    rez = rez .* sqrt(ArbT(2))^d .* exponentials
     rez = rez[[!isnan(sum(rez[i,:])) for i in 1:size(rez,1)],:]
     return rez
 end
