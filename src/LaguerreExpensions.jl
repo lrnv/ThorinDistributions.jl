@@ -160,19 +160,16 @@ function laguerre_phi_several_pts(x,max_p)
 
     println("Computing laguerre_L")
     laguerre_L = zeros(ArbT,(d,MP,n))
-    println("allocation successfull")
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
-    println("powers successfull")
-    Threads.@threads for p in 1:MP
+    for p in 1:MP
         laguerre_L[:,p:p,:] = dropdims(sum(-P.LAGUERRE[p:p,1:MP][na,:,:,na] .* powers[:,na,:,:],dims=3),dims=3)
     end
-    println("Threading sucessfull")
 
     println("Computing exponentials...")
     exponentials = dropdims(exp.(-sum(x,dims=1)),dims=1)
 
     println("Computing L(2x)")
-    Threads.@threads for p in CartesianIndices(max_p)
+    for p in CartesianIndices(max_p)
         for i in 1:d
             rez[[CartesianIndex((i,Tuple(p)...)) for i in 1:n]] .*= laguerre_L[i,p[i],:]
         end
