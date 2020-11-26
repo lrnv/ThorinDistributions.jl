@@ -197,7 +197,7 @@ end
 function old_empirical_coefs(x,maxp)
     entry_type = Base.promote_eltype(x,[1.0])
     x = ArbT.(x)
-    coefs = zeros(eltype(x),maxp)
+    coefs = zeros(Base.eltype(x),maxp)
     n = last(size(x))
     Threads.@threads for p in CartesianIndices(maxp)
         for i in 1:n
