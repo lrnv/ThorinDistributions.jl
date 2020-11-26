@@ -194,6 +194,21 @@ function empirical_coefs(x,maxp)
     return entry_type.(dropdims(sum(y,dims=1)/size(y,1),dims=1))
 end
 
+function old_empirical_coefs(x,maxp)
+    entry_type = Base.promote_eltype(x,[1.0])
+    x = ArbT.(x)
+    coefs = zeros(eltype(x),maxp)
+    n = last(size(x))
+    Threads.@threads for p in CartesianIndices(maxp)
+        for i in 1:n
+            coefs[p] += prod(laguerre_phi.(x[:,i],Tuple(p) .-1))
+        end
+        print(p,"\n")
+    end
+    return entry_type.(coefs ./ n)
+end
+
+
 """
     L2Objective(par,emp_coefs)
 
