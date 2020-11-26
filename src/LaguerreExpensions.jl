@@ -195,7 +195,7 @@ Compute the empirical laguerre coefficients of the density of the random vector 
 """
 function empirical_coefs(x,maxp)
     entry_type = Base.promote_eltype(x,[1.0])
-    x = T.(x)
+    x = ArbT.(x)
     y = laguerre_phi_several_pts(x,maxp)
     return entry_type.(dropdims(sum(y,dims=1)/size(y,1),dims=1))
 end
