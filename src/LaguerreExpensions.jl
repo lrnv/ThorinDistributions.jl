@@ -133,11 +133,14 @@ end
 Given some laguerre coefficients, computes the correpsonding function at the point x.
 """
 function laguerre_density(x,coefs)
-    rez = zero(Base.eltype(coefs))
+    T = Base.eltype(x)
+    x =ArbT.(x)
+    coefs = ArbT.(x)
+    rez = ArbT(0)
     for p in CartesianIndices(coefs)
         rez += coefs[p] * prod(laguerre_phi.(x,Tuple(p) .-1))
     end
-    return max(rez,0)
+    return T(max(rez,0))
 end
 
 
