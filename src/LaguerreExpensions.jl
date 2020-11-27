@@ -1,5 +1,5 @@
-setprecision(ArbFloat,bits=256)
-const ArbT = ArbFloat{256}
+setprecision(bits=256)
+const ArbT = BigFloat
 
 struct PreComp{Tb,Tl,Tf,Tm}
     BINS::Tb
