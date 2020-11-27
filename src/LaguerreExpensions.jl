@@ -161,7 +161,7 @@ function laguerre_phi_several_pts(x,max_p)
     println("Computing laguerre_L")
     laguerre_L = zeros(ArbT,(d,MP,n))
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
-    for p in 1:MP
+    Threads.@threads for p in 1:MP
         laguerre_L[:,p:p,:] = dropdims(sum(P.LAGUERRE[1:MP,p:p][na,:,:,na] .* powers[:,:,na,:],dims=2),dims=2)
     end
 
@@ -169,17 +169,13 @@ function laguerre_phi_several_pts(x,max_p)
     exponentials = dropdims(exp.(-sum(x,dims=1)),dims=1)
 
     println("Computing L(2x)")
-    for p in CartesianIndices(max_p)
+    Threads.@threads for p in CartesianIndices(max_p)
         for i in 1:d
             rez[[CartesianIndex((i,Tuple(p)...)) for i in 1:n]] .*= laguerre_L[i,p[i],:]
         end
         print(p,"\n")
     end
-
-    # Overflow correction:
-    rez = rez .* sqrt(ArbT(2))^d .* exponentials
-#    rez = rez[[!isnan(sum(rez[i,:])) for i in 1:size(rez,1)],:]
-    return rez
+    return rez .* sqrt(ArbT(2))^d .* exponentials
 end
 
 """
@@ -192,20 +188,6 @@ function empirical_coefs(x,maxp)
     x = ArbT.(x)
     y = laguerre_phi_several_pts(x,maxp)
     return entry_type.(dropdims(sum(y,dims=1)/size(y,1),dims=1))
-end
-
-function old_empirical_coefs(x,maxp)
-    entry_type = Base.promote_eltype(x,[1.0])
-    x = ArbT.(x)
-    coefs = zeros(Base.eltype(x),maxp)
-    n = last(size(x))
-    for p in CartesianIndices(maxp)
-        for i in 1:n
-            coefs[p] += prod(laguerre_phi.(x[:,i],Tuple(p) .-1))
-        end
-        print(p,"\n")
-    end
-    return entry_type.(coefs ./ n)
 end
 
 
