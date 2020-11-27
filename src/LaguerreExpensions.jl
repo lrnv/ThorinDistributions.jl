@@ -25,7 +25,7 @@ function PreComp(m)
     end
     for i in 1:m, j in 1:m
         BINS[j,i] = binomial(i-1,j-1)
-        LAGUERRE[i,j] = -BINS[i,j]/FACTS[j]*(-big(2))^(j-1)
+        LAGUERRE[j,i] = -BINS[j,i]/FACTS[j]*(-big(2))^(j-1)
     end
     BINS = ArbT.(BINS)
     LAGUERRE = ArbT.(LAGUERRE)
@@ -93,12 +93,12 @@ function get_coefficients(α, θ, m)
                 rez_mu = μ[j] * κ[k - j + I[1]]
                 for i in 1:d
                     rez_mu *= P.BINS[j[i],k[i]-Int(i==degree)]
-                    rez_coefs *= P.LAGUERRE[k[i],j[i]]
+                    rez_coefs *= P.LAGUERRE[j[i], k[i]]
                 end
                 μ[k] += rez_mu
             else
                 for i in 1:d
-                    rez_coefs *= P.LAGUERRE[k[i],j[i]]
+                    rez_coefs *= P.LAGUERRE[j[i], k[i]]
                 end
             end
             coefs[k] += rez_coefs
@@ -115,7 +115,7 @@ end
 Compute univariate laguerre polynomials Lₚ(2x).
 """
 function laguerre_L_2x(x,p)
-    sum(-P.LAGUERRE[p+1,1:(p+1)] .* x .^ (0:p))
+    sum(-P.LAGUERRE[1:(p+1),p+1] .* x .^ (0:p))
 end
 
 """
@@ -162,7 +162,7 @@ function laguerre_phi_several_pts(x,max_p)
     laguerre_L = zeros(ArbT,(d,MP,n))
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
     for p in 1:MP
-        laguerre_L[:,p:p,:] = dropdims(sum(-P.LAGUERRE[p:p,1:MP][na,:,:,na] .* powers[:,na,:,:],dims=3),dims=3)
+        laguerre_L[:,p:p,:] = dropdims(sum(-P.LAGUERRE[1:MP,p:p][na,:,:,na] .* powers[:,:,na,:],dims=3),dims=3)
     end
 
     println("Computing exponentials...")
