@@ -68,8 +68,8 @@ function get_coefficients(α, θ, m)
 
     # Starting the algorithm: there is an edge case for the Oth cumulant, 0th moment and 0th coef:
     κ[1] = sum(α .* log.(ArbT(1) .- sum(S,dims=2))) # this log fails ifsum(S,dims=2) is greater than 1, which should not happend.
-
-    coefs[1] = μ[1] = exp(κ[1])
+    μ[1] = exp(κ[1])
+    coefs[1] = -μ[1]
 
     for k in I[2:length(I)]
         # Indices and organisation
@@ -133,14 +133,11 @@ end
 Given some laguerre coefficients, computes the correpsonding function at the point x.
 """
 function laguerre_density(x,coefs)
-    T = Base.eltype(x)
-    x =ArbT.(x)
-    coefs = ArbT.(x)
-    rez = ArbT(0)
+    rez = zero(Base.eltype(coefs))
     for p in CartesianIndices(coefs)
         rez += coefs[p] * prod(laguerre_phi.(x,Tuple(p) .-1))
     end
-    return T(max(rez,0))
+    return max(rez,0)
 end
 
 
