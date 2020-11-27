@@ -162,7 +162,7 @@ function laguerre_phi_several_pts(x,max_p)
     laguerre_L = zeros(ArbT,(d,MP,n))
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
     for p in 1:MP
-        laguerre_L[:,p:p,:] = dropdims(sum(-P.LAGUERRE[1:MP,p:p][na,:,:,na] .* powers[:,:,na,:],dims=3),dims=3)
+        laguerre_L[:,p:p,:] = dropdims(sum(-P.LAGUERRE[1:MP,p:p][na,:,:,na] .* powers[:,:,na,:],dims=2),dims=2)
     end
 
     println("Computing exponentials...")
