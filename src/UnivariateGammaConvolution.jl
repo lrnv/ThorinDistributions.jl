@@ -13,7 +13,7 @@ function MoschopoulosParameters(α,θ)
     θ = T.(θ)
     δ = T.([1])
     θ₁ = Base.minimum(θ)
-    C = prod((θ ./ θ₁) .^ α)
+    C = prod((θ₁ ./ θ) .^ α)
     ρ = sum(α)
     to_power = (-θ₁ ./ θ) .+1
     γ = [sum(α .* to_power)] # gamma1
@@ -83,7 +83,6 @@ function UnivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2
     end
 
     if length(α) == 1
-        print('Changed!')
         return Distributions.Gamma(α[1],θ[1])
     end
     P = MoschopoulosParameters(α,θ)
