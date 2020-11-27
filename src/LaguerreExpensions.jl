@@ -25,7 +25,7 @@ function PreComp(m)
     end
     for i in 1:m, j in 1:m
         BINS[j,i] = binomial(i-1,j-1)
-        LAGUERRE[j,i] = -BINS[j,i]/FACTS[j]*(-big(2))^(j-1)
+        LAGUERRE[i,j] = -BINS[i,j]/FACTS[j]*(-big(2))^(j-1)
     end
     BINS = ArbT.(BINS)
     LAGUERRE = ArbT.(LAGUERRE)
@@ -93,12 +93,12 @@ function get_coefficients(α, θ, m)
                 rez_mu = μ[j] * κ[k - j + I[1]]
                 for i in 1:d
                     rez_mu *= P.BINS[j[i],k[i]-Int(i==degree)]
-                    rez_coefs *= P.LAGUERRE[j[i], k[i]]
+                    rez_coefs *= P.LAGUERRE[k[i],j[i]]
                 end
                 μ[k] += rez_mu
             else
                 for i in 1:d
-                    rez_coefs *= P.LAGUERRE[j[i], k[i]]
+                    rez_coefs *= P.LAGUERRE[k[i],j[i]]
                 end
             end
             coefs[k] += rez_coefs
