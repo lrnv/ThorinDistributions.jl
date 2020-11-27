@@ -69,7 +69,7 @@ function get_coefficients(α, θ, m)
     # Starting the algorithm: there is an edge case for the Oth cumulant, 0th moment and 0th coef:
     κ[1] = sum(α .* log.(ArbT(1) .- sum(S,dims=2))) # this log fails ifsum(S,dims=2) is greater than 1, which should not happend.
     μ[1] = exp(κ[1])
-    coefs[1] = -μ[1]
+    coefs[1] = μ[1]
 
     for k in I[2:length(I)]
         # Indices and organisation
