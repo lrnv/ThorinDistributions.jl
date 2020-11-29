@@ -121,9 +121,10 @@ end
 function MoschopoulosAlgo!(d::UnivariateGammaConvolution,x::Real, which)
 
     @assert(which in ["pdf","cdf"], "which should be etiher pdf or cdf")
-    T = Base.eltype(x)
-    atol = sqrt(eps(T))
+    T = ArbT
+    atol = eps(T)
     rtol = T(0)
+    entry_type = typeof(x)
     x = T(x)
     if x < T(0)
         return T(0)
@@ -145,8 +146,12 @@ function MoschopoulosAlgo!(d::UnivariateGammaConvolution,x::Real, which)
         elseif which == "cdf"
             step = d.P.δ[k+1] * Distributions.cdf(dist,x)
         end
-
-        @assert(isfinite(step),"inf or nan append, the algorithm did not converge")
+        # if ((!isfinite(step)) & (x > T(0)))
+        #     print("x = ", x)
+        #     print(d)
+        #     error("mince")
+        # end
+        @assert(!((!isfinite(step)) & (x > T(0))),"inf or nan append, the algorithm did not converge for x = $x")
         out += step
         if isapprox(step,T(0),atol=atol,rtol=rtol)
             break
@@ -154,7 +159,7 @@ function MoschopoulosAlgo!(d::UnivariateGammaConvolution,x::Real, which)
         k = k+1
     end
     out *= d.P.C
-    return out
+    return entry_type(out)
 end
 
 Distributions.pdf(d::UnivariateGammaConvolution,x::Real) = MoschopoulosAlgo!(d,x,"pdf")
