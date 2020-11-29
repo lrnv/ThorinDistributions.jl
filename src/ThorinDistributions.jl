@@ -3,7 +3,10 @@ module ThorinDistributions
 import Distributions
 import Random
 import Statistics
-#using ArbNumerics
+#using DoubleFloats
+
+setprecision(256)
+const ArbT = BigFloat
 
 na = [CartesianIndex()]
 

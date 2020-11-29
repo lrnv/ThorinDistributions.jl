@@ -1,5 +1,3 @@
-setprecision(256)
-const ArbT = BigFloat
 
 struct PreComp{Tb,Tl,Tf,Tm}
     BINS::Tb
