@@ -1,12 +1,8 @@
-# Convolutions of gamma distibutions:
-"""
-    Distributions.convolve(d1,d2)
+# The following method was removed due to the fact that it is a type piracy from Distributions.jl
+# Too bad; 
 
-Implements the special case of covolutions of two Gamma distributions to output UnivariateGammaDistributions.
-Also works with d1 a gamma and d2 a UnivariateGammaConvolution, and vice versa.
 
-"""
-Distributions.convolve(d1::Distributions.Gamma,d2::Distributions.Gamma) = UnivariateGammaConvolution([d1.α,d2.α],[d1.θ,d2.θ])
+#Distributions.convolve(d1::Distributions.Gamma,d2::Distributions.Gamma) = UnivariateGammaConvolution([d1.α,d2.α],[d1.θ,d2.θ])
 Distributions.convolve(d1::Distributions.Gamma,d2::UnivariateGammaConvolution) = UnivariateGammaConvolution([d1.α,d2.α...], [d1.θ,d2.θ...])
 Distributions.convolve(d1::UnivariateGammaConvolution,d2::Distributions.Gamma) = Distribution.convolve(d2,d1)
 # Products of UnivariateGammaConvolution
