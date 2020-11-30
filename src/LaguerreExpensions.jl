@@ -54,22 +54,27 @@ function get_coefficients(α, θ, m)
     θ = θ[are_pos,:]
     α = α[are_pos]
 
-    # Allocates ressources
     coefs = zeros(ArbT,m)
+    build_coefficients!(coefs,α,θ,ArbT(1.0),m)
+    return entry_type.(coefs)
+end
+
+function build_coefficients!(coefs,α,θ,cst1,m)
+    # Allocates ressources
     κ = deepcopy(coefs)
     μ = deepcopy(coefs)
     n = size(θ)[1]
     d = length(m)
     I = CartesianIndices(coefs)
-    S = θ ./ (ArbT(1) .+ sum(θ,dims=2))
+    S = θ ./ (cst1 .+ sum(θ,dims=2))
     S_pow = [s^k for k in (0:Base.maximum(m)), s in S]
 
     # Starting the algorithm: there is an edge case for the Oth cumulant, 0th moment and 0th coef:
-    κ[1] = sum(α .* log.(ArbT(1) .- sum(S,dims=2))) # this log fails ifsum(S,dims=2) is greater than 1, which should not happend.
+    κ[1] = sum(α .* log.(cst1 .- sum(S,dims=2))) # this log fails ifsum(S,dims=2) is greater than 1, which should not happend.
     μ[1] = exp(κ[1])
     coefs[1] = μ[1]
 
-    for k in I[2:length(I)]
+    @inbounds for k in I[2:length(I)]
         # Indices and organisation
         k_arr = Tuple(k)
         degree = findfirst(k_arr .!= 1)
@@ -102,8 +107,73 @@ function get_coefficients(α, θ, m)
             coefs[k] += rez_coefs
         end
     end
-    coefs *= sqrt(ArbT(2))^d
-    return entry_type.(coefs)
+    coefs .*= sqrt(2*cst1)^d
+end
+
+function build_coefficients!(coefs,α,θ,cst1,m::NTuple{1, T}) where T <: Int
+
+    θ = θ[:,1]
+    m = m[1]
+    kappa = Array{eltype(α), 1}(undef, m)
+    mu = zeros(eltype(α), m)
+
+    @. θ /= 1 + θ
+
+    # Edge case for the Oth cumulant, 0th moment and 0th coef:
+    kappa[1] = sum(α .* log.(cst1 .- θ))
+    coefs[1] = mu[1] = exp(kappa[1])
+
+    @inbounds for k in 2:m
+        # Main Computations:
+        α .*= θ
+        kappa[k] = sum(α) * P.FACTS[k - 1]
+    
+        for j in 1:k-1
+            mu[k] += mu[j] * kappa[k - j + 1] * P.BINS[j, k-1]
+        end
+        
+        @views coefs[k] = sum(mu[1:k] .* P.LAGUERRE[1:k, k])
+    end
+
+    coefs .*= sqrt(2*cst1)
+end
+
+function build_coefficients!(coefs,α,θ,cst1,m::NTuple{2, T}) where T <: Int
+    # Allocates ressources
+    κ = Array{Base.eltype(α), 2}(undef, m)
+    μ = zeros(Base.eltype(α), m)
+
+    #n = size(θ)[1]
+    d = length(m)
+    I = CartesianIndices(coefs)
+    θ ./= (cst1 .+ sum(θ,dims=2))
+    S_pow = [s^k for k in (0:Base.maximum(m)), s in θ]
+
+    # reduce the number of multiplications : 
+    for i in 1:size(α,1)
+        S_pow[:,i,:] .*= sqrt(α[i])
+    end
+
+    # Starting the algorithm: there is an edge case for the Oth cumulant, 0th moment and 0th coef:
+    κ[1] = sum(α .* log.(cst1 .- sum(θ,dims=2))) # this log fails ifsum(S,dims=2) is greater than 1, which should not happend.
+    μ[1] = exp(κ[1])
+    coefs[1] = μ[1]
+
+    @inbounds for k in I[2:length(I)]
+        # Indices and organisation
+        degree = k[1]!=1 ? 1 : 2
+
+        κ[k] = sum(S_pow[k[1],:,1] .* S_pow[k[2],:,2]) * P.FACTS[sum(Tuple(k))-d]
+        #κ[k] = sum(S_pow[k[1],:,1] .* S_pow[k[2],:,2]) * P.FACTS[sum(Tuple(k))-d] / P.FACTS[k[1]] / P.FACTS[k[2]]
+        for j in CartesianIndices(k)
+            if j[degree] < k[degree]
+                #μ[k] += μ[j] * κ[k - j + I[1]] * (k[degree] - j[degree] +1)
+                μ[k] += μ[j] * κ[k - j + I[1]] *  P.BINS[j[1],k[1]-Int(1==degree)] * P.BINS[j[2],k[2]-Int(2==degree)]
+            end
+            coefs[k] += μ[j] * P.LAGUERRE[j[1], k[1]] * P.LAGUERRE[j[2], k[2]]
+        end
+    end
+    coefs .*= sqrt(2*cst1)^d
 end
 
 
