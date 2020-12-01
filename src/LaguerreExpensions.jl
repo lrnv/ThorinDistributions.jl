@@ -224,7 +224,6 @@ function laguerre_phi_several_pts(x,max_p)
 
     d,n = size(x)
     rez = ones(ArbT,(n,max_p...))
-    na = [CartesianIndex()]
     MP = Base.maximum(max_p)
 
     println("Computing exponentials...")
@@ -235,7 +234,6 @@ function laguerre_phi_several_pts(x,max_p)
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
     println("Computing laguerre_L")
     Threads.@threads for p in 1:MP
-        
         laguerre_L[:,p:p,:] = dropdims(sum(P.LAGUERRE[1:p,p:p][na,:,:,na] .* powers[:,1:p,na,:],dims=2),dims=2)
         print(p,"\n")
     end
@@ -259,6 +257,7 @@ function empirical_coefs(x,maxp)
     entry_type = Base.promote_eltype(x,[1.0])
     x = ArbT.(x)
     y = laguerre_phi_several_pts(x,maxp)
+    println("Taking the means...")
     return entry_type.(dropdims(sum(y,dims=1)/size(y,1),dims=1))
 end
 

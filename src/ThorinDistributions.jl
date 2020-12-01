@@ -3,12 +3,12 @@ module ThorinDistributions
 import Distributions
 import Random
 import Statistics
-#using DoubleFloats
+using DoubleFloats
 
-setprecision(256)
-const ArbT = BigFloat
+#setprecision(256)
+const ArbT = Double64
 
-na = [CartesianIndex()]
+const na = [CartesianIndex()]
 
 include("UnivariateGammaConvolution.jl")
 include("MultivariateGamma.jl")
