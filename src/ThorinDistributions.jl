@@ -5,8 +5,8 @@ import Random
 import Statistics
 using DoubleFloats
 
-#setprecision(256)
-const ArbT = Double64
+setprecision(256)
+const ArbT = BigFloat
 
 const na = [CartesianIndex()]
 
