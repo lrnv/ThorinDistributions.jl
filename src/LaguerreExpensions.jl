@@ -114,8 +114,8 @@ function build_coefficients!(coefs,α,θ,cst1,m::NTuple{1, T}) where T <: Int
 
     θ = θ[:,1]
     m = m[1]
-    kappa = Array{eltype(α), 1}(undef, m)
-    mu = zeros(eltype(α), m)
+    kappa = Array{Base.eltype(α), 1}(undef, m)
+    mu = zeros(Base.eltype(α), m)
 
     @. θ /= 1 + θ
 
@@ -219,22 +219,26 @@ but this is ugly in the sense that we re-wrote some of the code.
 function laguerre_phi_several_pts(x,max_p)
     # computes the laguerre_phi for each row of x and each p in CartesianIndex(maxp)
     # This is a lot more efficient than broadcasting the laguerre_phi function,
-    # but this is ugly in the sens that we re-wrote some of the code.
+    # but we re-wrote a lot of code (this is quite ugly)
+    # all this mechanisme could clearly be refatored.
 
     d,n = size(x)
     rez = ones(ArbT,(n,max_p...))
     na = [CartesianIndex()]
     MP = Base.maximum(max_p)
 
-    println("Computing laguerre_L")
-    laguerre_L = zeros(ArbT,(d,MP,n))
-    powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
-    Threads.@threads for p in 1:MP
-        laguerre_L[:,p:p,:] = dropdims(sum(P.LAGUERRE[1:MP,p:p][na,:,:,na] .* powers[:,:,na,:],dims=2),dims=2)
-    end
-
     println("Computing exponentials...")
     exponentials = dropdims(exp.(-sum(x,dims=1)),dims=1)
+
+    laguerre_L = zeros(ArbT,(d,MP,n))
+    println("Computing powers...")
+    powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
+    println("Computing laguerre_L")
+    Threads.@threads for p in 1:MP
+        
+        laguerre_L[:,p:p,:] = dropdims(sum(P.LAGUERRE[1:p,p:p][na,:,:,na] .* powers[:,1:p,na,:],dims=2),dims=2)
+        print(p,"\n")
+    end
 
     println("Computing L(2x)")
     Threads.@threads for p in CartesianIndices(max_p)
