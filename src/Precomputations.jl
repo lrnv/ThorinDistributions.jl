@@ -25,7 +25,9 @@ function bigfloat_precomputations(m)
     PreComp(BINS,LAGUERRE,FACTS)
 end
 
-const Precomp_Dict = Dict{Tuple{Int64,DataType},Any}((MAX_M,BigFloat)=>bigfloat_precomputations(MAX_M))
+const big_P = bigfloat_precomputations(MAX_M)
+
+const Precomp_Dict = Dict{Tuple{Int64,DataType},Any}((MAX_M,BigFloat)=>big_P)
 
 """
     get_precomp(type,m)
@@ -35,15 +37,15 @@ Query and eventualy compute and store the precomputations for laguerre things.
 function get_precomp(type::DataType,m::T) where {T <: Int}
     # The getter should :
     if (m,type) in keys(Precomp_Dict)
-        return Precomp_Dict[(m,type)]
+        return Precomp_Dict[(m,type)]::PreComp{type}
     end
     # if this is not the case, we will just construct it :
     if m > MAX_M
         error("You ask for too much")
     end
-    P = Precomp_Dict[(MAX_M,BigFloat)]
+    P = big_P
     Precomp_Dict[(m,type)] = PreComp(type.(P.BINS[1:m,1:m]),type.(P.LAGUERRE[1:m,1:m]),type.(P.FACTS[1:m]))
-    return Precomp_Dict[(m,type)]
+    return Precomp_Dict[(m,type)]::PreComp{type}
 end
 
 

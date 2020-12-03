@@ -191,13 +191,12 @@ Computes the laguerre_phi for each row of x and each p in CartesianIndex(maxp)
 This is a lot more efficient than broadcasting the laguerre_phi function,
 but this is ugly in the sense that we re-wrote some of the code.
 """
-function laguerre_phi_several_pts(x,max_p)
+function laguerre_phi_several_pts(x::AbstractArray{T},max_p) where {T <: Real}
     # computes the laguerre_phi for each row of x and each p in CartesianIndex(maxp)
     # This is a lot more efficient than broadcasting the laguerre_phi function,
     # but we re-wrote a lot of code (this is quite ugly)
     # all this mechanisme could clearly be refatored.
-    T = Base.eltype(x)
-    P = get_precomp(T,Base.maximum(max_p)+1)
+    P = get_precomp(T,Base.maximum(max_p)+1)::PreComp{T}
     d,n = size(x) 
     rez = ones(T,(n,max_p...))
     MP = Base.maximum(max_p)
