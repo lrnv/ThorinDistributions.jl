@@ -1,9 +1,9 @@
 const MAX_M = 200
 
 struct PreComp{T}
-    BINS::AbstractArray{T,2}
-    LAGUERRE::AbstractArray{T,2}
-    FACTS::AbstractArray{T,1}
+    BINS::Array{T,2}
+    LAGUERRE::Array{T,2}
+    FACTS::Array{T,1}
 end
 
 

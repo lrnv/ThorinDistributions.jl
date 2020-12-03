@@ -1,50 +1,3 @@
-
-# struct PreComp{Tb,Tl,Tf,Tm}
-#     BINS::Tb
-#     LAGUERRE::Tl
-#     FACTS::Tf
-#     MAX_SUM_OF_M::Tm
-# end
-
-# """
-#     PreComp(m)
-
-# Given a precison of computations and a tuple m which gives the size of the future laguerre basis, this fonctions precomputes certain quatities
-# these quatities might be needed later...
-# """
-# function PreComp(m)
-#     setprecision(2048)
-#     m = big(m)
-#     BINS = zeros(BigInt,(m,m))
-#     FACTS = zeros(BigInt,m)
-#     LAGUERRE = zeros(BigFloat,(m,m))
-#     for i in 1:m
-#         FACTS[i] = factorial(i-1)
-#     end
-#     for i in 1:m, j in 1:m
-#         BINS[j,i] = binomial(i-1,j-1)
-#         LAGUERRE[j,i] = BINS[j,i]/FACTS[j]*(-big(2))^(j-1)
-#     end
-#     BINS = ArbT.(BINS)
-#     LAGUERRE = ArbT.(LAGUERRE)
-#     FACTS = ArbT.(FACTS)
-#     PreComp(BINS,LAGUERRE,FACTS,ArbT(m))
-# end
-# const P = PreComp(200)
-
-
-# We could handle the typing distach of precoputations more inteligently: 
-# At the start of the function, find the type of arguments.
-# Then use a getter on a specific struct that, if precomputations in this type exists, return them,
-# and if not, compute them, store them and return them. 
-# Hence, precomputations will occur on first call to them. 
-# Furthermore, we could also dispatch on m to ony pass around the right amount of data. 
-# So the module would store a distionary of precomputations that has type and m fixed. 
-# Later, we could also dispatch on the dimension to avoid some multiplications online
-
-
-
-
 """
     get_coefficients(α,θ,m)
 
@@ -68,10 +21,10 @@ function get_coefficients(α, θ, m)
     α = α[are_pos]
 
     
-    P = get_precomp(T,sum(m))
+    P = get_precomp(T,sum(m))::PreComp{T}
     coefs = zeros(T,m)
     build_coefficients!(coefs,α,θ,T(1.0),m,P)
-    return T.(coefs)
+    return coefs
 end
 
 function build_coefficients!(coefs,α,θ,cst1,m,P)
@@ -127,7 +80,7 @@ function build_coefficients!(coefs,α,θ,cst1,m,P)
     coefs .*= sqrt(2*cst1)^d
 end
 
-function build_coefficients!(coefs,α,θ,cst1,m::NTuple{1, T},P) where T <: Int
+function build_coefficients!(coefs::AbstractArray{T,1},α::AbstractArray{T,1},θ::AbstractArray{T,2},cst1::T,m::NTuple{1, T2},P::PreComp{T}) where {T2 <: Int,T <: Real}
 
     θ = θ[:,1]
     m = m[1]
@@ -157,7 +110,7 @@ function build_coefficients!(coefs,α,θ,cst1,m::NTuple{1, T},P) where T <: Int
     coefs .*= sqrt(2*cst1)
 end
 
-function build_coefficients!(coefs,α,θ,cst1,m::NTuple{2, T},P) where T <: Int
+function build_coefficients!(coefs::AbstractArray{T,1},α::AbstractArray{T,1},θ::AbstractArray{T,2},cst1::T,m::NTuple{2, T2},P::PreComp{T}) where {T2 <: Int,T <: Real}
     # Allocates ressources
     κ = Array{Base.eltype(α), 2}(undef, m)
     μ = zeros(Base.eltype(α), m)
