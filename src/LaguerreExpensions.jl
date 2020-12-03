@@ -40,7 +40,7 @@ function build_coefficients!(coefs,α,θ,cst1,m,P)
     # Starting the algorithm: there is an edge case for the Oth cumulant, 0th moment and 0th coef:
     to_log = cst1 .- sum(θ,dims=2)
     to_log .= ifelse.(to_log .< 0, to_log .+ eps(Base.eltype(α)), to_log)
-    κ[1] = sum(α .* log.(cst1 .- sum(S,dims=2)))
+    κ[1] = sum(α .* log.(to_log))
     μ[1] = exp(κ[1])
     coefs[1] = μ[1]
 
