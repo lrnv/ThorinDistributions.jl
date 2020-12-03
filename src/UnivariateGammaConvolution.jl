@@ -19,7 +19,7 @@ function MoschopoulosParameters(α,θ)
     γ = [sum(α .* to_power)] # gamma1
     return MoschopoulosParameters(θ₁,C,to_power,γ,ρ,δ)
 end
-eltype(P::MoschopoulosParameters) = typeof(P.θ₁)
+Base.eltype(P::MoschopoulosParameters) = typeof(P.θ₁)
 
 
 
@@ -96,7 +96,7 @@ end
 Distributions.@distr_support UnivariateGammaConvolution 0.0 Inf
 
 #### Conversions
-eltype(d::UnivariateGammaConvolution) = typeof(d.α[1])
+Base.eltype(d::UnivariateGammaConvolution) = typeof(d.α[1])
 Base.convert(::Type{UnivariateGammaConvolution{T}}, d::UnivariateGammaConvolution{S}) where {T <: Real, S <: Real} = UnivariateGammaConvolution(T.(d.α), T.(d.θ))
 
 #### parameters

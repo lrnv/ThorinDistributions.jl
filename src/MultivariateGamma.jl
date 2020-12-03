@@ -32,7 +32,7 @@ end
 MultivariateGamma(α::T1,θ::T2) where {T1<:Real, T2<:Real} = Distributions.Gamma(promote(α,θ)...)
 
 #### eltype, length, support
-eltype(d::MultivariateGamma) = typeof(d.α)
+Base.eltype(d::MultivariateGamma) = typeof(d.α)
 Base.length(d::MultivariateGamma) = length(d.θ)
 function Distributions.insupport(d::MultivariateGamma,x::AbstractVector{T}) where {T <: Real}
     # for theta that are 0, x must be 0

@@ -1,36 +1,49 @@
 
-struct PreComp{Tb,Tl,Tf,Tm}
-    BINS::Tb
-    LAGUERRE::Tl
-    FACTS::Tf
-    MAX_SUM_OF_M::Tm
-end
+# struct PreComp{Tb,Tl,Tf,Tm}
+#     BINS::Tb
+#     LAGUERRE::Tl
+#     FACTS::Tf
+#     MAX_SUM_OF_M::Tm
+# end
 
-"""
-    PreComp(m)
+# """
+#     PreComp(m)
 
-Given a precison of computations and a tuple m which gives the size of the future laguerre basis, this fonctions precomputes certain quatities
-these quatities might be needed later...
-"""
-function PreComp(m)
-    setprecision(2048)
-    m = big(m)
-    BINS = zeros(BigInt,(m,m))
-    FACTS = zeros(BigInt,m)
-    LAGUERRE = zeros(BigFloat,(m,m))
-    for i in 1:m
-        FACTS[i] = factorial(i-1)
-    end
-    for i in 1:m, j in 1:m
-        BINS[j,i] = binomial(i-1,j-1)
-        LAGUERRE[j,i] = BINS[j,i]/FACTS[j]*(-big(2))^(j-1)
-    end
-    BINS = ArbT.(BINS)
-    LAGUERRE = ArbT.(LAGUERRE)
-    FACTS = ArbT.(FACTS)
-    PreComp(BINS,LAGUERRE,FACTS,ArbT(m))
-end
-const P = PreComp(200)
+# Given a precison of computations and a tuple m which gives the size of the future laguerre basis, this fonctions precomputes certain quatities
+# these quatities might be needed later...
+# """
+# function PreComp(m)
+#     setprecision(2048)
+#     m = big(m)
+#     BINS = zeros(BigInt,(m,m))
+#     FACTS = zeros(BigInt,m)
+#     LAGUERRE = zeros(BigFloat,(m,m))
+#     for i in 1:m
+#         FACTS[i] = factorial(i-1)
+#     end
+#     for i in 1:m, j in 1:m
+#         BINS[j,i] = binomial(i-1,j-1)
+#         LAGUERRE[j,i] = BINS[j,i]/FACTS[j]*(-big(2))^(j-1)
+#     end
+#     BINS = ArbT.(BINS)
+#     LAGUERRE = ArbT.(LAGUERRE)
+#     FACTS = ArbT.(FACTS)
+#     PreComp(BINS,LAGUERRE,FACTS,ArbT(m))
+# end
+# const P = PreComp(200)
+
+
+# We could handle the typing distach of precoputations more inteligently: 
+# At the start of the function, find the type of arguments.
+# Then use a getter on a specific struct that, if precomputations in this type exists, return them,
+# and if not, compute them, store them and return them. 
+# Hence, precomputations will occur on first call to them. 
+# Furthermore, we could also dispatch on m to ony pass around the right amount of data. 
+# So the module would store a distionary of precomputations that has type and m fixed. 
+# Later, we could also dispatch on the dimension to avoid some multiplications online
+
+
+
 
 """
     get_coefficients(α,θ,m)
@@ -45,21 +58,23 @@ function get_coefficients(α, θ, m)
     # α must be an array with size (n,)
     # θ must be an array with size (n,d)
     # max_p must be a Tuple of integers with size (d,)
-    entry_type = Base.promote_eltype(α,θ,[1.0]) # At least float.
-    α = ArbT.(α)
-    θ = ArbT.(θ)
+    T = Base.promote_eltype(α,θ,[1.0]) # At least float.
+    α = T.(α)
+    θ = T.(θ)
 
     # Trim down null αs values:
     are_pos = α .!= 0
     θ = θ[are_pos,:]
     α = α[are_pos]
 
-    coefs = zeros(ArbT,m)
-    build_coefficients!(coefs,α,θ,ArbT(1.0),m)
-    return entry_type.(coefs)
+    
+    P = get_precomp(T,sum(m))
+    coefs = zeros(T,m)
+    build_coefficients!(coefs,α,θ,T(1.0),m,P)
+    return T.(coefs)
 end
 
-function build_coefficients!(coefs,α,θ,cst1,m)
+function build_coefficients!(coefs,α,θ,cst1,m,P)
     # Allocates ressources
     κ = deepcopy(coefs)
     μ = deepcopy(coefs)
@@ -70,7 +85,9 @@ function build_coefficients!(coefs,α,θ,cst1,m)
     S_pow = [s^k for k in (0:Base.maximum(m)), s in S]
 
     # Starting the algorithm: there is an edge case for the Oth cumulant, 0th moment and 0th coef:
-    κ[1] = sum(α .* log.(cst1 .- sum(S,dims=2))) # this log fails ifsum(S,dims=2) is greater than 1, which should not happend.
+    to_log = cst1 .- sum(θ,dims=2)
+    to_log .= ifelse.(to_log .< 0, to_log .+ eps(Base.eltype(α)), to_log)
+    κ[1] = sum(α .* log.(cst1 .- sum(S,dims=2)))
     μ[1] = exp(κ[1])
     coefs[1] = μ[1]
 
@@ -110,7 +127,7 @@ function build_coefficients!(coefs,α,θ,cst1,m)
     coefs .*= sqrt(2*cst1)^d
 end
 
-function build_coefficients!(coefs,α,θ,cst1,m::NTuple{1, T}) where T <: Int
+function build_coefficients!(coefs,α,θ,cst1,m::NTuple{1, T},P) where T <: Int
 
     θ = θ[:,1]
     m = m[1]
@@ -120,7 +137,9 @@ function build_coefficients!(coefs,α,θ,cst1,m::NTuple{1, T}) where T <: Int
     @. θ /= 1 + θ
 
     # Edge case for the Oth cumulant, 0th moment and 0th coef:
-    kappa[1] = sum(α .* log.(cst1 .- θ))
+    to_log = cst1 .- θ
+    to_log .= ifelse.(to_log .< 0, to_log .+ eps(Base.eltype(α)), to_log) # correcting rounding errors.
+    kappa[1] = sum(α .* log.(to_log))
     coefs[1] = mu[1] = exp(kappa[1])
 
     @inbounds for k in 2:m
@@ -138,7 +157,7 @@ function build_coefficients!(coefs,α,θ,cst1,m::NTuple{1, T}) where T <: Int
     coefs .*= sqrt(2*cst1)
 end
 
-function build_coefficients!(coefs,α,θ,cst1,m::NTuple{2, T}) where T <: Int
+function build_coefficients!(coefs,α,θ,cst1,m::NTuple{2, T},P) where T <: Int
     # Allocates ressources
     κ = Array{Base.eltype(α), 2}(undef, m)
     μ = zeros(Base.eltype(α), m)
@@ -155,7 +174,9 @@ function build_coefficients!(coefs,α,θ,cst1,m::NTuple{2, T}) where T <: Int
     end
 
     # Starting the algorithm: there is an edge case for the Oth cumulant, 0th moment and 0th coef:
-    κ[1] = sum(α .* log.(cst1 .- sum(θ,dims=2))) # this log fails ifsum(S,dims=2) is greater than 1, which should not happend.
+    to_log = cst1 .- sum(θ,dims=2)
+    to_log .= ifelse.(to_log .< 0, to_log .+ eps(Base.eltype(α)), to_log)
+    κ[1] = sum(α .* log.(to_log)) # this log fails ifsum(S,dims=2) is greater than 1, which occurs because of rounding errors. We add an eps to avoid that. 
     μ[1] = exp(κ[1])
     coefs[1] = μ[1]
 
@@ -183,6 +204,7 @@ end
 Compute univariate laguerre polynomials Lₚ(2x).
 """
 function laguerre_L_2x(x,p)
+    P = get_precomp(Base.eltype(x),p+1)
     sum(P.LAGUERRE[1:(p+1),p+1] .* x .^ (0:p))
 end
 
@@ -221,15 +243,16 @@ function laguerre_phi_several_pts(x,max_p)
     # This is a lot more efficient than broadcasting the laguerre_phi function,
     # but we re-wrote a lot of code (this is quite ugly)
     # all this mechanisme could clearly be refatored.
-
-    d,n = size(x)
-    rez = ones(ArbT,(n,max_p...))
+    T = Base.eltype(x)
+    P = get_precomp(T,Base.maximum(max_p)+1)
+    d,n = size(x) 
+    rez = ones(T,(n,max_p...))
     MP = Base.maximum(max_p)
 
     println("Computing exponentials...")
     exponentials = dropdims(exp.(-sum(x,dims=1)),dims=1)
 
-    laguerre_L = zeros(ArbT,(d,MP,n))
+    laguerre_L = zeros(T,(d,MP,n))
     println("Computing powers...")
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
     println("Computing laguerre_L")
@@ -239,13 +262,14 @@ function laguerre_phi_several_pts(x,max_p)
     end
 
     println("Computing L(2x)")
+    max_p_treated = -1
     Threads.@threads for p in CartesianIndices(max_p)
         for i in 1:d
             rez[[CartesianIndex((i,Tuple(p)...)) for i in 1:n]] .*= laguerre_L[i,p[i],:]
         end
         print(p,"\n")
     end
-    return rez .* sqrt(ArbT(2))^d .* exponentials
+    return rez .* sqrt(T(2))^d .* exponentials
 end
 
 """
@@ -254,11 +278,11 @@ end
 Compute the empirical laguerre coefficients of the density of the random vector x, given as a Matrix with n row (number of samples) and d columns (number of dimensions)
 """
 function empirical_coefs(x,maxp)
-    entry_type = Base.promote_eltype(x,[1.0])
-    x = ArbT.(x)
+    T = Base.promote_eltype(x,[1.0])
+    x = T.(x)
     y = laguerre_phi_several_pts(x,maxp)
     println("Taking the means...")
-    return entry_type.(dropdims(sum(y,dims=1)/size(y,1),dims=1))
+    return dropdims(sum(y,dims=1)/size(y,1),dims=1)
 end
 
 
@@ -292,25 +316,6 @@ function L2ObjectiveWithPenalty(par,emp_coefs)
     penalty = lambda * sum(abs.(old_par))
     return loss + penalty
 end
-
-
-# function get_uniform_x0{T}(n,d) where T
-#     θ = zeros(T, (n,d+1))
-#     Random.rand!(θ)
-#     θ = -log.(θ) # exponentials
-#     θ ./= sum(θ, dims=2) # rowsums = 1
-#     θ = θ[:,1:d] # uniform on the simplex.
-#     θ ./= (T(1) .- sum(θ,dims=2))
-#     θ = sqrt.(θ)
-#
-#     αs = zeros(T,(n,))
-#     Random.rand!(αs)
-#     αs = - log.(αs)
-#
-#     # Finaly, merge the two:
-#     par = vcat(αs,reshape(θ,(n*d)))
-#     return par
-# end
 
 """
     minimum_m(n,d)
