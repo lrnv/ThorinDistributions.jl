@@ -16,10 +16,10 @@ julia> sample = zeros(Float64,(3,10));
 julia> Random.rand!(dist,sample);
 ```
 """
-struct MultivariateGamma{T<:Real} <: Distributions.ContinuousMultivariateDistribution where T
+struct MultivariateGamma{T<:Real, V<:AbstractVector{T}, M<:Distributions.Gamma{T} } <: Distributions.ContinuousMultivariateDistribution where T
     α::T
-    θ::AbstractVector{T}
-    Γα::Distributions.Gamma{T}
+    θ::V
+    Γα::M
 end
 
 #### Constructor :

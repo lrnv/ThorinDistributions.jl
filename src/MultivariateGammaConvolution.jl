@@ -17,10 +17,10 @@ julia> Random.rand!(dist,sample);
 
 ```
 """
-struct MultivariateGammaConvolution{T<:Real} <: Distributions.ContinuousMultivariateDistribution where T
-    α::AbstractVector{T}
-    θ::AbstractMatrix{T}
-    constants
+struct MultivariateGammaConvolution{T<:Real, V<:AbstractVector{T}, M<: AbstractMatrix{T}} <: Distributions.ContinuousMultivariateDistribution where T
+    α::V
+    θ::M
+    constants::Int
 end
 
 #### Constructor :
