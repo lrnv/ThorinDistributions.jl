@@ -136,19 +136,30 @@ function build_coefficients!(coefs::AbstractArray{T,1},α::AbstractArray{T,1},θ
     @inbounds for k in I[2:length(I)]
         # Indices and organisation
         degree = k[1]!=1 ? 1 : 2
-
+        deg1 = Int(1==degree)
+        deg2 = Int(2==degree)
+        
         κ[k] = sum(S_pow[k[1],:,1] .* S_pow[k[2],:,2]) * P.FACTS[sum(Tuple(k))-d]
-        #κ[k] = sum(S_pow[k[1],:,1] .* S_pow[k[2],:,2]) * P.FACTS[sum(Tuple(k))-d] / P.FACTS[k[1]] / P.FACTS[k[2]]
         for j in CartesianIndices(k)
             if j[degree] < k[degree]
-                #μ[k] += μ[j] * κ[k - j + I[1]] * (k[degree] - j[degree] +1)
-                μ[k] += μ[j] * κ[k - j + I[1]] *  P.BINS[j[1],k[1]-Int(1==degree)] * P.BINS[j[2],k[2]-Int(2==degree)]
+                μ[k] += μ[j] * κ[k - j + I[1]] *  P.BINS[j[1],k[1]-deg1] * P.BINS[j[2],k[2]-deg2]
             end
             coefs[k] += μ[j] * P.LAGUERRE[j[1], k[1]] * P.LAGUERRE[j[2], k[2]]
         end
     end
     coefs .*= sqrt(2*cst1)^d
 end
+
+
+
+# Another way of building the coefficients would be through polynomial expensions via juliadiff and TaylorSerie.jl and SpecialPolynomials.jl and stuff. 
+# Maybe this is doable: 
+# Define an expension of ln(1 + <θ,t>), parametrised by θ. 
+# take the sum on α. This provides a polynomial expension for κ
+# Take exp(). This provides a polynomial expension for μ as \sum μ_k / k! x^k
+# Then we can use some known laguerre polynomials function and compose with the coefficients of mu
+# to get exactly the polynomial we want into α,θ. 
+
 
 
 """
@@ -214,7 +225,6 @@ function laguerre_phi_several_pts(x::AbstractArray{T},max_p) where {T <: Real}
     end
 
     println("Computing L(2x)")
-    max_p_treated = -1
     Threads.@threads for p in CartesianIndices(max_p)
         for i in 1:d
             rez[[CartesianIndex((i,Tuple(p)...)) for i in 1:n]] .*= laguerre_L[i,p[i],:]
@@ -227,14 +237,43 @@ end
 """
     empirical_coefs(x,maxp)
 
-Compute the empirical laguerre coefficients of the density of the random vector x, given as a Matrix with n row (number of samples) and d columns (number of dimensions)
+Efficiently Compute the empirical laguerre coefficients of the density of the random vector x, given as a Matrix with n row (number of samples) and d columns (number of dimensions)
 """
-function empirical_coefs(x,maxp)
+function empirical_coefs(x,max_p)
     T = Base.promote_eltype(x,[1.0])
     x = T.(x)
-    y = laguerre_phi_several_pts(x,maxp)
+    y = laguerre_phi_several_pts(x,max_p)
     println("Taking the means...")
     return dropdims(sum(y,dims=1)/size(y,1),dims=1)
+end
+
+
+function empirical_coefs(x,max_p::NTuple{2,M}) where M<:Int
+    T = Base.promote_eltype(x,[1.0])
+    x = T.(x)
+    P = get_precomp(T,Base.maximum(max_p)+1)::PreComp{T}
+    d,n = size(x) 
+    rez = ones(T,max_p)
+    MP = Base.maximum(max_p)
+
+    println("Computing exponentials...")
+    exponentials = dropdims(exp.(-sum(x,dims=1)),dims=1)
+
+    laguerre_L = zeros(T,(d,MP,n))
+    println("Computing powers...")
+    powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
+    println("Computing laguerre_L")
+    Threads.@threads for p in 1:MP
+        laguerre_L[:,p:p,:] = dropdims(sum(P.LAGUERRE[1:p,p:p][na,:,:,na] .* powers[:,1:p,na,:],dims=2),dims=2)
+    end
+
+    println("Computing coefs")
+    Threads.@threads for p in CartesianIndices(max_p)
+        rez[p] = sum(laguerre_L[1,p[1],:] .* laguerre_L[2,p[2],:] .* exponentials)
+    end
+    println("Taking the means...")
+    rez = (rez .* 2) ./ n
+    return rez
 end
 
 
