@@ -53,7 +53,7 @@ function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{
                  θ = θ[[1:(j-1),(j+1):size(θ,1)],:]
                  j = j-1
              end
-         end[]
+         end
      end
      if length(α) == 1
          return MultivariateGamma(α,θ[:,1])
@@ -65,7 +65,7 @@ MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2}) wher
 
 
 #### eltype, length, support
-Base.eltype(::MultivariateGammaConvolution{T,V,M}) where {T,V,M} = T
+Base.eltype(d::MultivariateGammaConvolution) = typeof(d.α)
 Base.length(d::MultivariateGammaConvolution) = size(d.θ,2)
 function Distributions.insupport(d::MultivariateGammaConvolution,x::AbstractVector{T}) where {T <: Real}
     return all(x > T(0))
