@@ -13,13 +13,13 @@ function MoschopoulosParameters(α,θ)
     θ = T.(θ)
     δ = T.([1])
     θ₁ = Base.minimum(θ)
-    C = prod((θ₁ ./ θ) .^ α)
+    C = exp(sum(α .* log.(θ₁ ./ θ)))
     ρ = sum(α)
     to_power = (-θ₁ ./ θ) .+1
     γ = [sum(α .* to_power)] # gamma1
     return MoschopoulosParameters(θ₁,C,to_power,γ,ρ,δ)
 end
-Base.eltype(P::MoschopoulosParameters) = typeof(P.θ₁)
+Base.eltype(P::MoschopoulosParameters{T}) where T = T
 
 
 
@@ -86,7 +86,7 @@ function UnivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2
         return Distributions.Gamma(α[1],θ[1])
     end
     P = MoschopoulosParameters(α,θ)
-    tt = eltype(P)
+    tt = Base.eltype(P)
     α = tt.(α)
     θ = tt.(θ)
     return UnivariateGammaConvolution(α,θ,MoschopoulosParameters(α,θ))
@@ -121,7 +121,7 @@ end
 function MoschopoulosAlgo!(d::UnivariateGammaConvolution,x::Real, which)
 
     @assert(which in ["pdf","cdf"], "which should be etiher pdf or cdf")
-    T = ArbT
+    T = Base.eltype(d)
     atol = eps(T)
     rtol = T(0)
     entry_type = typeof(x)
