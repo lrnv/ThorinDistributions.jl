@@ -86,9 +86,8 @@ function UnivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2
         return Distributions.Gamma(α[1],θ[1])
     end
     P = MoschopoulosParameters(α,θ)
-    tt = Base.eltype(P)
-    α = tt.(α)
-    θ = tt.(θ)
+    α = T.(α)
+    θ = T.(θ)
     return UnivariateGammaConvolution(α,θ,MoschopoulosParameters(α,θ))
 end
 
