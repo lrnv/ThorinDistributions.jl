@@ -65,7 +65,7 @@ MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2}) wher
 
 
 #### eltype, length, support
-eltype(d::MultivariateGammaConvolution) = typeof(d.α)
+Base.eltype(d::MultivariateGammaConvolution) = typeof(d.α)
 Base.length(d::MultivariateGammaConvolution) = size(d.θ,2)
 function Distributions.insupport(d::MultivariateGammaConvolution,x::AbstractVector{T}) where {T <: Real}
     return all(x > T(0))
