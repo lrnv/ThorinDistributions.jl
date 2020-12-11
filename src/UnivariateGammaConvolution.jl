@@ -19,7 +19,7 @@ function MoschopoulosParameters(α,θ)
     γ = [sum(α .* to_power)] # gamma1
     return MoschopoulosParameters(θ₁,C,to_power,γ,ρ,δ)
 end
-Base.eltype(P::MoschopoulosParameters{T}) where T = T
+Base.eltype(::MoschopoulosParameters{T}) where T = T
 
 
 
