@@ -16,4 +16,14 @@ $$f(x) = \frac{x^{α-1}e^{-x/θ}}{Γ(α)θ^α}$$
 
 As Bondesson shows, based on Thorin work, the class of (weak limit of) independent convolutions of gamma distributions is quite large, closed with respect to independent addition and multiplication of random variables, and contains many interesting distributions.
 
-We implement here a multivariate extensions of these results, and statistical estimation routines to allow for estimation of these distributions through a Laguerre expensions of their densities. 
+We implement here a multivariate extensions of these results, and statistical estimation routines to allow for estimation of these distributions through a Laguerre expensions of their densities. The goal is to provide: 
+
+- Density evaluation through Moschopoulos, Mathai, and novel Laguerre series in univariate case
+- Density evaluation in the multivariate case through Laguerre series
+- Estimation through an L2 loss on density in the Laguerre basis
+- Random number generation
+- Addition of independant GGC (by design) and Multiplication of independant GGC (through an estimatation)
+
+
+We aim at providing the losses functions and the distributions architecture, but we do not provide the global optimisations algorithms to minimize these losses. 
+
