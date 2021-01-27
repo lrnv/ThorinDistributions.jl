@@ -72,7 +72,7 @@ function UnivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2
         if i >= length(θ)
             break
         end
-        for j in (i+1):length(θ)
+        for j in length(θ):-1:(i+1)
             if θ[i] == θ[j]
                 α[i] += α[j]
                 deleteat!(α,j)
