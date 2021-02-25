@@ -68,6 +68,14 @@ git-tree-sha1 = "b7715ae18be02110a8cf9cc8ed2ccdb1e3e3aba2"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 version = "0.26.1"
 
+[[DoubleExponentialFormulas]]
+deps = ["LinearAlgebra", "Printf"]
+git-tree-sha1 = "8cd357fe50459e3b230e428260c20c1ce00c98ea"
+repo-rev = "master"
+repo-url = "https://github.com/machakann/DoubleExponentialFormulas.jl.git"
+uuid = "eb426421-6452-4132-80ef-4b100a757ac5"
+version = "0.0.7"
+
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
 git-tree-sha1 = "ff537e5a3cba92fb48f30fec46723510450f2c0e"

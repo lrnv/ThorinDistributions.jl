@@ -28,6 +28,9 @@ function get_coefficients(α, θ, m)
 end
 
 function build_coefficients!(coefs,α,θ,cst1,m,P)
+
+    # This is the default method, for higher dimensions.
+
     # Allocates ressources
     κ = deepcopy(coefs)
     μ = deepcopy(coefs)
@@ -151,17 +154,6 @@ function build_coefficients!(coefs::AbstractArray{T,1},α::AbstractArray{T,1},θ
 end
 
 
-
-# Another way of building the coefficients would be through polynomial expensions via juliadiff and TaylorSerie.jl and SpecialPolynomials.jl and stuff. 
-# Maybe this is doable: 
-# Define an expension of ln(1 + <θ,t>), parametrised by θ. 
-# take the sum on α. This provides a polynomial expension for κ
-# Take exp(). This provides a polynomial expension for μ as \sum μ_k / k! x^k
-# Then we can use some known laguerre polynomials function and compose with the coefficients of mu
-# to get exactly the polynomial we want into α,θ. 
-
-
-
 """
     laguerre_L_2x(x,p)
 
@@ -200,31 +192,27 @@ end
 
 Computes the laguerre_phi for each row of x and each p in CartesianIndex(maxp)
 This is a lot more efficient than broadcasting the laguerre_phi function,
-but this is ugly in the sense that we re-wrote some of the code.
+but this is ugly in the sense that we re-wrote some of the code. This machanisme could be re-written more efficiently.
 """
 function laguerre_phi_several_pts(x::AbstractArray{T},max_p) where {T <: Real}
-    # computes the laguerre_phi for each row of x and each p in CartesianIndex(maxp)
-    # This is a lot more efficient than broadcasting the laguerre_phi function,
-    # but we re-wrote a lot of code (this is quite ugly)
-    # all this mechanisme could clearly be refatored.
     P = get_precomp(T,Base.maximum(max_p)+1)::PreComp{T}
     d,n = size(x) 
     rez = ones(T,(n,max_p...))
     MP = Base.maximum(max_p)
 
-    println("Computing exponentials...")
+    # println("Computing exponentials...")
     exponentials = dropdims(exp.(-sum(x,dims=1)),dims=1)
 
     laguerre_L = zeros(T,(d,MP,n))
-    println("Computing powers...")
+    # println("Computing powers...")
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
-    println("Computing laguerre_L")
+    # println("Computing laguerre_L")
     Threads.@threads for p in 1:MP
         laguerre_L[:,p:p,:] = dropdims(sum(P.LAGUERRE[1:p,p:p][na,:,:,na] .* powers[:,1:p,na,:],dims=2),dims=2)
         print(p,"\n")
     end
 
-    println("Computing L(2x)")
+    # println("Computing L(2x)")
     Threads.@threads for p in CartesianIndices(max_p)
         for i in 1:d
             rez[[CartesianIndex((i,Tuple(p)...)) for i in 1:n]] .*= laguerre_L[i,p[i],:]
@@ -243,7 +231,7 @@ function empirical_coefs(x,max_p)
     T = Base.promote_eltype(x,[1.0])
     x = T.(x)
     y = laguerre_phi_several_pts(x,max_p)
-    println("Taking the means...")
+    # println("Taking the means...")
     return dropdims(sum(y,dims=1)/size(y,1),dims=1)
 end
 
@@ -256,22 +244,17 @@ function empirical_coefs(x,max_p::NTuple{2,M}) where M<:Int
     rez = ones(T,max_p)
     MP = Base.maximum(max_p)
 
-    println("Computing exponentials...")
     exponentials = dropdims(exp.(-sum(x,dims=1)),dims=1)
 
     laguerre_L = zeros(T,(d,MP,n))
-    println("Computing powers...")
     powers = x[:,na,:] .^ (0:(MP-1))[na,:,na]
-    println("Computing laguerre_L")
     Threads.@threads for p in 1:MP
         laguerre_L[:,p:p,:] = dropdims(sum(P.LAGUERRE[1:p,p:p][na,:,:,na] .* powers[:,1:p,na,:],dims=2),dims=2)
     end
 
-    println("Computing coefs")
     Threads.@threads for p in CartesianIndices(max_p)
         rez[p] = sum(laguerre_L[1,p[1],:] .* laguerre_L[2,p[2],:] .* exponentials)
     end
-    println("Taking the means...")
     rez = (rez .* 2) ./ n
     return rez
 end
@@ -282,6 +265,7 @@ end
 
 A L2 distance to be minimized between laguerre coefficients of MultivariateGammaConvolutions and empirical laguerre coefficients.
 This distance is some kind of very high degree polynomial * exponentials, so minimizing it is very hard.
+We recomand using some global minimisation routine, we found the Particle Swarm optimizers from Optim.jl particularly efficient.
 """
 function L2Objective(par, emp_coefs)
     m = size(emp_coefs)
