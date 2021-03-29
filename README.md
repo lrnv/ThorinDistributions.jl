@@ -1,5 +1,6 @@
 # ThorinDistributions
 
+[![DOI](https://zenodo.org/badge/315324274.svg)](https://zenodo.org/badge/latestdoi/315324274)
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://lrnv.github.io/ThorinDistributions.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://lrnv.github.io/ThorinDistributions.jl/dev)
 [![Build Status](https://github.com/lrnv/ThorinDistributions.jl/workflows/CI/badge.svg)](https://github.com/lrnv/ThorinDistributions.jl/actions)
