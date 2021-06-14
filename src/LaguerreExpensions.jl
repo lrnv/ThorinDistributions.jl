@@ -16,8 +16,12 @@ function get_coefficients(α, θ, m)
     θ = T.(θ)
 
     # Trim down null αs values:
-    are_pos = α .!= 0
-    θ = θ[are_pos,:]
+    are_pos = findall(α .!= 0)
+    if ndims(θ) == 1
+        θ = θ[are_pos]
+    else
+        θ = θ[are_pos,:] # produces a matrix when θ is only a vector.. 
+    end
     α = α[are_pos]
 
     
@@ -83,12 +87,11 @@ function build_coefficients!(coefs,α,θ,cst1,m,P)
     coefs .*= sqrt(2*cst1)^d
 end
 
-function build_coefficients!(coefs::AbstractArray{T,1},α::AbstractArray{T,1},θ::AbstractArray{T,2},cst1::T,m::NTuple{1, T2},P::PreComp{T}) where {T2 <: Int,T <: Real}
+function build_coefficients!(coefs::AbstractArray{T,1},α::AbstractArray{T,1},θ::AbstractArray{T,1},cst1::T,m::NTuple{1, T2},P::PreComp{T}) where {T2 <: Int,T <: Real}
 
-    θ = θ[:,1]
-    m = m[1]
-    kappa = Array{Base.eltype(α), 1}(undef, m)
-    mu = zeros(Base.eltype(α), m)
+    #kappa = Array{Base.eltype(α), 1}(undef, m[1])
+    kappa = zeros(T,m[1])
+    mu = zeros(T, m[1])
 
     @. θ /= 1 + θ
 
@@ -96,20 +99,22 @@ function build_coefficients!(coefs::AbstractArray{T,1},α::AbstractArray{T,1},θ
     to_log = cst1 .- θ
     to_log .= ifelse.(to_log .< 0, to_log .+ eps(Base.eltype(α)), to_log) # correcting rounding errors.
     kappa[1] = sum(α .* log.(to_log))
-    coefs[1] = mu[1] = exp(kappa[1])
+    coefs[1] = mu[1] = exp(kappa[1]) # this is the only place kappa[1] is used. 
+    #coefs[1] = mu[1] = prod(to_log .^ α)
 
-    @inbounds for k in 2:m
+    @inbounds for k in 2:m[1]
         # Main Computations:
         α .*= θ
+        # Note: Kappa[1] is not used here either.
         kappa[k] = sum(α) * P.FACTS[k - 1]
     
         for j in 1:k-1
-            mu[k] += mu[j] * kappa[k - j + 1] * P.BINS[j, k-1]
+            # Note: kappa[1] is not used here. 
+            @views mu[k] += mu[j] * kappa[k - j + 1] * P.BINS[j, k-1]
         end
         
-        @views coefs[k] = sum(mu[1:k] .* P.LAGUERRE[1:k, k])
+        @views coefs[k] = mu[1:k]'P.LAGUERRE[1:k, k]
     end
-
     coefs .*= sqrt(2*cst1)
 end
 

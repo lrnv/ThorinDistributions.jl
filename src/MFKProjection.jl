@@ -89,7 +89,7 @@ function MFK_Projection(g_integrals,n_gammas)
         end
     end
 
-    sol_b = Symmetric(S) \ (-s[(n_gammas+1):end])
+    sol_b = LinearAlgebra.Symmetric(S) \ (-s[(n_gammas+1):end])
     b = deepcopy(sol_b)
     append!(b,1)
     b = reverse(b)
@@ -104,7 +104,7 @@ function MFK_Projection(g_integrals,n_gammas)
         end
     end
 
-    z = real.(roots(b, polish=true))
+    z = real.(PolynomialRoots.roots(b, polish=true))
 
     beta = -z .-1
     alpha = deepcopy(beta)

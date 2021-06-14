@@ -50,6 +50,11 @@ struct UnivariateGammaConvolution{T<:Real} <: Distributions.ContinuousUnivariate
     P::MoschopoulosParameters{T}
 end
 
+function Base.show(io::IO, m::UnivariateGammaConvolution) 
+    println("Univariate Gamma Convolutions with parametrisation:")
+    display([Text.(["α" "θ"]); [m.α m.θ][sortperm(-m.θ),:]])
+end
+
 # Constructors :
 UnivariateGammaConvolution(α::Real,θ::Real) = Distributions.Gamma(α,θ)
 function UnivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2}) where {T1 <: Real, T2 <: Real}
