@@ -12,12 +12,14 @@
 This Julia package implements some tools to work with and around generalized gamma convolutions and their multivariate extensions. 
 
 A non-exhaustive list of included features:
+- Random number generation and infrastructure through overloading of Distributions.jl functions.
 - Density evaluation through Moschopoulos, Mathai, and novel Laguerre series in univariate case
 - Density evaluation in the multivariate case through Laguerre series
 - Laverny's Estimation through an L2 loss on density in the Laguerre basis
+- Tool sto estimate and work with k-statistics and shifted cumulants and moments, including a formal expansion to compute their formulas. 
 - Estimation through a shifted-cumulant-based loss 
-- Random number generation and Distributions overloading infrastructure
 - Miles, Furman and Kuznetsov projection algorithm
+- ...
 
 
 This is still a WIP and the documentation is sparse, as are the test coverage. Use with caution.
