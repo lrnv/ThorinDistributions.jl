@@ -1,8 +1,8 @@
 using ThorinDistributions
 using Test
 
-# @testset "ThorinDistributions.jl" begin
-    
-# end
+@testset verbose=true "ThorinDistributions.jl" begin
+    include("kStats_tests.jl")
+    include("BellPol_tests.jl")
+end
 
-include("kStats_tests.jl")
