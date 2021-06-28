@@ -53,7 +53,8 @@ function resemps_thorin_moments(M,D::AbstractMatrix{T},t_star,m) where {T}
     end
 
     # Main loop: 
-    for i in 1:M
+    Threads.@threads for i in 1:M
+        println(i)
         η[i,:,:] = dropdims(Statistics.mean(ηs[:,StatsBase.sample(1:n,n,replace=true),:],dims=2),dims=2)
         for dim in 1:d
            @views τ_from_η!(τ[i,dim,:],η[i,dim,:])
