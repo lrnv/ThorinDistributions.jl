@@ -1,4 +1,3 @@
-using ThorinDistributions
 using Test
 
 @testset verbose=true "ThorinDistributions.jl" begin
