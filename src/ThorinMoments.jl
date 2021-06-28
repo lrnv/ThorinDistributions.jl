@@ -16,6 +16,14 @@ function τ_from_η!(τ,η)
     end
     return τ
 end
+
+"""
+    thorin_moments(D,t_star,m)
+
+D should be a vector of samples from a distribution, t_star is usually taking to be -1, and m is an integer.
+
+This compute the bare thorin moments, defined as a rescaling of the sample biaised `t_star`-shifted cumulants.
+"""
 function thorin_moments(D::Vector{T},t_star,m) where T
     n = length(D)
     τ = zeros(T,m+1)
@@ -26,6 +34,14 @@ function thorin_moments(D::Vector{T},t_star,m) where T
     τ_from_η!(τ,η)
     return τ
 end
+
+"""
+resemps_thorin_moments(M,D,t_star,m)
+
+M is an integer, D should be a vector of samples from a distribution, t_star is usually taking to be -1, and m is an integer.
+
+This resamples the bare thorin moments M times, more efficienty than a simple bootstrap of the `thorin_moments(D,t_star,m)` function.
+"""
 function resemps_thorin_moments(M,D::AbstractMatrix{T},t_star,m) where {T}
     d,n = size(D)
     ηs = zeros(T,(d,n,m+1))
