@@ -99,6 +99,23 @@ end
     κ5 = cum_from_mom_rec(μ,mu0=0.5);
     κ6 = cum_from_mom_rec_simplified(μ,mu0=0.5);
 
+    n = 100
+    D = BigFloat.(rand(LogNormal(),n));
+
+    @testset "thorin_moment_function is alright" begin
+        τ = TD.thorin_moments(D,-1,10)
+        ηs = zeros(eltype(D),(n,11))
+        TD.ηs_from_data!(ηs,D,-1,10)
+        η_mom = Statistics.mean(ηs,dims=1) .* factorial.(big.(0:10))'
+        τ1 = cum_from_mom_rec(η_mom,mu0=nothing) ./ factorial.(big.(0:9))
+        τ2 = cum_from_mom_rec_simplified(η_mom,mu0=nothing) ./ factorial.(big.(0:9))
+        τ3 = cumulants_from_moments(η_mom[2:end],η_mom[1]) ./ factorial.(big.(0:9))
+        
+        @test τ == τ1
+        @test τ ≈ τ2
+        @test τ ≈ τ3
+    end
+
     @testset "firsts cumulants corretness, mu0=1" begin
         @test κ1[1] == 0
         @test κ1[2] == μ[1]
@@ -136,7 +153,6 @@ end
     end
 
     @testset "Resemp is OK" begin
-        D = BigFloat.(rand(LogNormal(),100));
         M = 10
         Random.seed!(123)
         x1 = old_resemps_thorin_moments(M,D,-1,10)
