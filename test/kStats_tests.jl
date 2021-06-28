@@ -5,7 +5,7 @@ import Combinatorics
 using Test
 
 
-@testset "kStats.jl" begin 
+@testset "kStats.jl tests" begin 
     @testset "better_stirling correctness" begin
         @test TD._better_stirling(10,5)[10,5]==Combinatorics.stirlings2(10,5)
     end

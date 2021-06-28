@@ -171,32 +171,3 @@ Distributions.cdf(d::UnivariateGammaConvolution, x::Real) = MoschopoulosAlgo!(d,
 Distributions.logpdf(d::UnivariateGammaConvolution, x::Real) = log(pdf(d,x))
 Distributions.mgf(d::UnivariateGammaConvolution, t::Real) = prod((1 - t .* d.θ) .^ (-d.α))
 Distributions.cf(d::UnivariateGammaConvolution, t::Real) = prod((1 - (im * t) .* d.θ) .^ (-d.α))
-
-
-
-
-#
-# # Let's now test that :
-# dist = UnivariateGammaConvolution([1,0.5, 3.7],[4,2, 10])
-# sample = zeros(Float64,10)
-# import Random
-# Random.rand!(dist,sample)
-# x = pdf.((dist,),sample)
-#
-# # R equivalent :
-# # coga::dcoga(1:10,c(0.5,0.5),1/c(2,2))
-# #  [1] 0.303265330 0.183939721 0.111565080 0.067667642 0.041042499
-# #  [6] 0.024893534 0.015098692 0.009157819 0.005554498 0.003368973
-#
-# # coga::dcoga(1:10,c(1,0.5),1/c(4,2))
-# #  [1] 0.14331842 0.14639660 0.13015318 0.10960590 0.08976271
-# #  [6] 0.07231982 0.05766797 0.04567114 0.03600119 0.02828581
-# # >
-# # perfect !!
-#
-# #
-# # A simple bigfloat test :
-#
-# sample = zeros(BigFloat,1000)
-# import Random
-# Random.rand!(dist,sample)

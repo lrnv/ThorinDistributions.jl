@@ -89,7 +89,7 @@ function cum_from_mom_rec_simplified(μ;mu0)
     return κ[1:end-1]
 end 
 
-@testset "BellPol.jl" begin
+@testset "ThorinMoments.jl tests" begin
 
     DynamicPolynomials.@polyvar μ[1:10];
     κ1 = cumulants_from_moments(μ,1);
@@ -103,15 +103,15 @@ end
     D = BigFloat.(rand(LogNormal(),n));
 
     @testset "thorin_moment_function is alright" begin
-        τ = TD.thorin_moments(D,-1,10)
+        τ = TD.thorin_moments(D,-1,9)
         ηs = zeros(eltype(D),(n,11))
         TD.ηs_from_data!(ηs,D,-1,10)
         η_mom = Statistics.mean(ηs,dims=1) .* factorial.(big.(0:10))'
-        τ1 = cum_from_mom_rec(η_mom,mu0=nothing) ./ factorial.(big.(0:9))
-        τ2 = cum_from_mom_rec_simplified(η_mom,mu0=nothing) ./ factorial.(big.(0:9))
-        τ3 = cumulants_from_moments(η_mom[2:end],η_mom[1]) ./ factorial.(big.(0:9))
+        τ1 = cum_from_mom_rec(η_mom,mu0=nothing) ./ factorial.([big(0),big.(0:8)...])
+        τ2 = cum_from_mom_rec_simplified(η_mom,mu0=nothing) ./ factorial.([big(0),big.(0:8)...])
+        τ3 = cumulants_from_moments(η_mom[2:end],η_mom[1]) ./ factorial.([big(0),big.(0:8)...])
         
-        @test τ == τ1
+        @test τ ≈ τ1
         @test τ ≈ τ2
         @test τ ≈ τ3
     end
