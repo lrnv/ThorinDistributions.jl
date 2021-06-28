@@ -21,6 +21,6 @@ include("ConvolutionsAndProducts.jl")
 include("LaguerreExpensions.jl")
 include("MFKProjection.jl")
 include("kStats.jl")
-include("BellPol.jl")
+include("ThorinMoments.jl")
 
 end
