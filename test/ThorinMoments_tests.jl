@@ -105,7 +105,7 @@ end
     @testset "thorin_moment_function is alright" begin
         τ = TD.thorin_moments(D,-1,9)
         ηs = zeros(eltype(D),(n,11))
-        TD.ηs_from_data!(ηs,D,-1,10)
+        TD.ηs_from_data!(ηs,D,-1)
         η_mom = Statistics.mean(ηs,dims=1) .* factorial.(big.(0:10))'
         τ1 = cum_from_mom_rec(η_mom,mu0=nothing) ./ factorial.([big(0),big.(0:8)...])
         τ2 = cum_from_mom_rec_simplified(η_mom,mu0=nothing) ./ factorial.([big(0),big.(0:8)...])
