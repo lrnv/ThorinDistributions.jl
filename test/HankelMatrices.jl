@@ -1,4 +1,4 @@
-import ThorinDistributions as TD
+import ThorinDistributions
 using DynamicPolynomials, Random
 Random.seed!(123)
 
@@ -22,8 +22,8 @@ end
 
     m=20
     @polyvar x[1:m+1]
-    H_low, H_up = vec.(TD.get_hankels(x,2,3))
-    H_low_op, H_up_op = TD.vec_H.(TD.hankel_operators(m,2,3))
+    H_low, H_up = vec.(ThorinDistributions.get_hankels(x,2,3))
+    H_low_op, H_up_op = ThorinDistributions.vec_H.(ThorinDistributions.hankel_operators(m,2,3))
     
     @testset "coherence of hankel_operator" begin
         @test H_low_op*x == H_low
@@ -35,14 +35,14 @@ end
     a,b = min(a,b),max(a,b)
 
     @testset "coherence of get_hankels for random bounds" begin 
-        @test get_hankels_truth(x,3,4) == TD.get_hankels(x,3,4)
-        @test get_hankels_truth(x,a,b) == TD.get_hankels(x,a,b)
+        @test get_hankels_truth(x,3,4) == ThorinDistributions.get_hankels(x,3,4)
+        @test get_hankels_truth(x,a,b) == ThorinDistributions.get_hankels(x,a,b)
     end
 
     x = randn(100)
 
     @testset "coherence for random values" begin
-        @test get_hankels_truth(x,0,1) == TD.get_hankels(x,0,1)
-        @test get_hankels_truth(x,a,b) == TD.get_hankels(x,a,b)
+        @test get_hankels_truth(x,0,1) == ThorinDistributions.get_hankels(x,0,1)
+        @test get_hankels_truth(x,a,b) == ThorinDistributions.get_hankels(x,a,b)
     end
 end

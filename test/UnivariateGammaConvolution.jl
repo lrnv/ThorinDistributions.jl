@@ -1,9 +1,9 @@
-import ThorinDistributions as TD
+import ThorinDistributions
 using Test
 
 @testset "UnivariateGammaConvolution.jl tests" begin 
 
-    dist = TD.UnivariateGammaConvolution([1,0.5, 3.7],[4,2, 10])
+    dist = ThorinDistributions.UnivariateGammaConvolution([1,0.5, 3.7],[4,2, 10])
    
     @testset "functions are working and consistant with past selves." begin
         spl = [

@@ -1,5 +1,5 @@
 using Distributions, Random, Statistics, Test
-import ThorinDistributions as TD
+import ThorinDistributions
 import DynamicPolynomials, Statistics, StatsBase
 
 ####################################
@@ -103,9 +103,9 @@ end
     D = BigFloat.(rand(LogNormal(),n));
 
     @testset "thorin_moment_function is alright" begin
-        τ = TD.thorin_moments(D,-1,9)
+        τ = ThorinDistributions.thorin_moments(D,-1,9)
         ηs = zeros(eltype(D),(n,11))
-        TD.ηs_from_data!(ηs,D,-1)
+        ThorinDistributions.ηs_from_data!(ηs,D,-1)
         η_mom = Statistics.mean(ηs,dims=1) .* factorial.(big.(0:10))'
         τ1 = cum_from_mom_rec(η_mom,mu0=nothing) ./ factorial.([big(0),big.(0:8)...])
         τ2 = cum_from_mom_rec_simplified(η_mom,mu0=nothing) ./ factorial.([big(0),big.(0:8)...])
@@ -157,10 +157,10 @@ end
         Random.seed!(123)
         x1 = old_resemps_thorin_moments(M,D,-1,10)
         Random.seed!(123)
-        x2 = TD.resemps_thorin_moments(M,D,-1,10)
+        x2 = ThorinDistributions.resemps_thorin_moments(M,D,-1,10)
         @test x1 ≈ x2
         Random.seed!(123)
-        x3 = TD.resemps_thorin_moments(M,[D 2D]',-1,10)
+        x3 = ThorinDistributions.resemps_thorin_moments(M,[D 2D]',-1,10)
         @test x1 ≈ x3[:,1,:]
 
     end
