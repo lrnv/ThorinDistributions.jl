@@ -1,8 +1,16 @@
 using Test
+using TestSetExtensions
 
-@testset verbose=true "ThorinDistributions.jl" begin
-    include("kStats_tests.jl")
-    include("ThorinMoments_tests.jl")
-    include("UnivariateGammaConvolution_tests.jl")
+@testset ExtendedTestSet "ThorinDistributions tests" begin
+    @includetests ARGS
 end
+
+
+
+# @testset verbose=true "ThorinDistributions.jl" begin
+#     include("kStats.jl")
+#     include("ThorinMoments.jl")
+#     include("UnivariateGammaConvolution.jl")
+#     include("HankelMatrices.jl")
+# end
 

@@ -39,7 +39,10 @@ end
 """
 resemps_thorin_moments(M,D,t_star,m)
 
-M is an integer, D should be a vector of samples from a distribution, t_star is usually taking to be -1, and m is an integer.
+`M` is an integer
+`D` is the data, as a (d,n)-shaped matrix, where d is the numebr of dimensions and n the number of samples.
+`t_star` is usually taking to be -1
+`m` is an integer.
 
 This resamples the bare thorin moments M times, more efficienty than a simple bootstrap of the `thorin_moments(D,t_star,m)` function.
 """
@@ -53,7 +56,7 @@ function resemps_thorin_moments(M,D::AbstractMatrix{T},t_star,m) where {T}
     end
 
     # Main loop: 
-    Threads.@threads for i in 1:M
+    for i in 1:M
         println(i)
         η[i,:,:] = dropdims(Statistics.mean(ηs[:,StatsBase.sample(1:n,n,replace=true),:],dims=2),dims=2)
         for dim in 1:d

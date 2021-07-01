@@ -22,5 +22,6 @@ include("LaguerreExpensions.jl")
 include("MFKProjection.jl")
 include("kStats.jl")
 include("ThorinMoments.jl")
+include("HankelMatrices.jl")
 
 end

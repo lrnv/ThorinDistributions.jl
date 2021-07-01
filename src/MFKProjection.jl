@@ -33,7 +33,7 @@ function compute_g(dist,n, integrator)
     g = Array{BigFloat}(undef, 1,2n+1)
     residuals_g = deepcopy(g)
     for i in 0:(2n)
-        g[i+1],residuals_g[i+1] = integrator(x -> (-x)^(i) * pdf(dist,x) * exp(-x), 0, +Inf)
+        g[i+1],residuals_g[i+1] = integrator(x -> (-x)^(i) * Distributions.pdf(dist,x) * exp(-x), 0, +Inf)
         print("g_{",i,"} = ",Float64(g[i+1]),", rez = ",Float64(residuals_g[i+1]),"\n")
     end
     return g
@@ -58,46 +58,46 @@ function E_from_g(g)
 end
 
 
-
-"""
-
-    MFK_Projection(g_integrals,n_gammas)
-
-From a set of g_integrals computed by the compute_g function, this function runs the algorithm from Miles, Furman & Kuznetsov 
-to produce a univariate gamma convolution. 
-
-This algorithm works only if the distribution you computed the g_integrals from is, indeed, a generalized gamma convolution. 
-otherwise, it might fail and return garbage. 
-
-"""
-function MFK_Projection(g_integrals,n_gammas)
-
-    s = Array{BigFloat}(undef, 2n_gammas)
-    s[1] = -g_integrals[2]/g_integrals[1]
+function build_s!(s,g,facts)
+    s[1] = -g[2]/g[1]
     for k in 1:(length(s)-1)
-        s[k+1] = g_integrals[k+2] / factorial(big(k))
+        s[k+1] = g[k+2] / facts[k+1]
         for i in 0:(k-1)
-            s[k+1] += s[i+1] * g_integrals[k-i+1] / factorial(big(k-i))
+            s[k+1] += s[i+1] * g[k-i+1] / facts[k-i+1]
         end
-        s[k+1] = - s[k+1]/g_integrals[1]
+        s[k+1] = - s[k+1]/g[1]
     end
+end
 
-    S = Array{BigFloat}(undef, n_gammas,n_gammas)
-    for i in 0:(n_gammas-1)
-        for j in 0:(n_gammas-1)
+function s_from_k(k)
+    if isodd(length(k))
+        n = Int((length(k)-1)/2)
+    else
+        n = Int(length(k)/2) - 1
+    end
+    # n = Int(round(length(k)/2))
+    s = k[2:2n+1] .* (-1) .^(2:(2n+1))
+    return s
+end
+
+function MFK_end(s::Vector{T}) where T
+    n = Int(length(s)//2)
+    S = zeros(T,(n,n))
+    for i in 0:(n-1)
+        for j in 0:(n-1)
             S[i+1,j+1] = s[i+j+1]
         end
     end
 
-    sol_b = LinearAlgebra.Symmetric(S) \ (-s[(n_gammas+1):end])
+    sol_b = LinearAlgebra.Symmetric(S) \ (-s[(n+1):end])
     b = deepcopy(sol_b)
     append!(b,1)
     b = reverse(b)
-    b_deriv = reverse(sol_b) .* (1:n_gammas)
+    b_deriv = reverse(sol_b) .* (1:n)
 
-    a = Array{BigFloat}(undef, n_gammas)
+    a = zeros(T,n)
     a[1] = s[1]
-    for k in 1:(n_gammas-1)
+    for k in 1:(n-1)
         a[k+1] = s[k+1]
         for i in 0:(k-1)
             a[k+1] = a[k+1] + b[i+2] * s[k-i]
@@ -120,6 +120,29 @@ function MFK_Projection(g_integrals,n_gammas)
         end
         alpha[i] = rez_num/rez_denom
     end
+    theta = 1 ./beta
+    return alpha,theta
+end
 
+
+
+
+
+"""
+
+    MFK_Projection(g_integrals,n_gammas)
+
+From a set of g_integrals computed by the compute_g function, this function runs the algorithm from Miles, Furman & Kuznetsov 
+to produce a univariate gamma convolution. 
+
+This algorithm works only if the distribution you computed the g_integrals from is, indeed, a generalized gamma convolution. 
+otherwise, it might fail and return garbage. 
+
+"""
+function MFK_Projection(g_integrals::Vector{T},n) where T
+    facts = factorial.(T.(0:2n))
+    s = Array{T}(undef, 2n)
+    build_s!(s,g_integrals,facts)
+    alpha,beta = MFK_end(s,n)
     return ThorinDistributions.UnivariateGammaConvolution(Float64.(alpha), Float64.(1 ./ beta))
 end
