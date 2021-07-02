@@ -282,26 +282,31 @@ function L2Objective(par, emp_coefs)
     return sum((coefs .- emp_coefs) .^2)
 end
 
-"""
-    L2ObjectiveWithPenalty(par,emp_coefs)
-
-A L2 distance to be minimized between laguerre coefficients of MultivariateGammaConvolutions and empirical laguerre coefficients.
-This distance is some kind of very high degree polynomial * exponentials, so minimizing it is very hard.
-This version includes a penalty to force parameters to go towards 0. but it is not yet working correctly.
-"""
-function L2ObjectiveWithPenalty(par,emp_coefs)
-    old_par = par[1:(length(par)-1)]
-    loss = L2Objective(old_par,emp_coefs)
-    lambda = last(par)^2
-    penalty = lambda * sum(abs.(old_par))
-    return loss + penalty
+function αθ_from_par(par)
+    n = Int(length(par)/2)
+    return par[1:n].^2, par[(n+1):2n].^2
 end
 
-"""
-    minimum_m(n,d)
+# """
+#     L2ObjectiveWithPenalty(par,emp_coefs)
 
-Computes the minimum integer m such that m^d > (d+1)n
-"""
-function minimum_m(n,d)
-    return Int(ceil(((d+1)n)^(1/d)))
-end
+# A L2 distance to be minimized between laguerre coefficients of MultivariateGammaConvolutions and empirical laguerre coefficients.
+# This distance is some kind of very high degree polynomial * exponentials, so minimizing it is very hard.
+# This version includes a penalty to force parameters to go towards 0. but it is not yet working correctly.
+# """
+# function L2ObjectiveWithPenalty(par,emp_coefs)
+#     old_par = par[1:(length(par)-1)]
+#     loss = L2Objective(old_par,emp_coefs)
+#     lambda = last(par)^2
+#     penalty = lambda * sum(abs.(old_par))
+#     return loss + penalty
+# end
+
+# """
+#     minimum_m(n,d)
+
+# Computes the minimum integer m such that m^d > (d+1)n
+# """
+# function minimum_m(n,d)
+#     return Int(ceil(((d+1)n)^(1/d)))
+# end
