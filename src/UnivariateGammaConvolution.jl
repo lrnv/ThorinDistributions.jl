@@ -50,9 +50,11 @@ struct UnivariateGammaConvolution{T<:Real} <: Distributions.ContinuousUnivariate
     P::MoschopoulosParameters{T}
 end
 
+n(x::UnivariateGammaConvolution) = length(x.α)
+
 function Base.show(io::IO, m::UnivariateGammaConvolution) 
     println("Univariate Gamma Convolutions with parametrisation:")
-    display([Text.(["α" "θ"]); [m.α m.θ][sortperm(-m.θ),:]])
+    display([Text.(["α" "θ"]); [m.α m.θ]])
 end
 
 # Constructors :
@@ -63,36 +65,36 @@ function UnivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2
     T = Base.promote_eltype(α,θ,[1.0]) # At least float.
     α = T.(α)
     θ = T.(θ)
-
-    # Remove alphas and theta that are non-positives
-    if any(α .== T(0))
-        are_pos = α .* θ .!= T(0)
-        α = α[are_pos]
-        θ = θ[are_pos]
-    end
-
-    # regroup theta that are the sames :
+    tol = sqrt(eps(T)) # Arbitrary fixed tolerence ! 
+    
+    order = sortperm(θ)
     n = length(θ)
-    for i in 1:(n-1)
-        if i >= length(θ)
-            break
-        end
-        for j in length(θ):-1:(i+1)
-            if θ[i] == θ[j]
-                α[i] += α[j]
-                deleteat!(α,j)
-                deleteat!(θ,j)
-                j = j-1
+    θ = θ[order]
+    α = α[order]
+    for i in 1:n
+        if i < length(θ)
+            for j in (i+1):n
+                if j <= length(θ)
+                    if abs(θ[i] - θ[j]) <= tol
+                        new_α = α[i]+α[j]
+                        new_θ = (α[i]*θ[i]+α[j]*θ[j])/(new_α)
+                        α[i] = new_α
+                        θ[i] = new_θ
+                        deleteat!(α,j)
+                        deleteat!(θ,j)
+                        j = j-1
+                    end
+                end
             end
         end
     end
+    to_be_kept = (α .> tol) .& (θ .> tol)
+    α = α[to_be_kept]
+    θ = θ[to_be_kept]
 
     if length(α) == 1
         return Distributions.Gamma(α[1],θ[1])
     end
-    P = MoschopoulosParameters(α,θ)
-    α = T.(α)
-    θ = T.(θ)
     return UnivariateGammaConvolution(α,θ,MoschopoulosParameters(α,θ))
 end
 
