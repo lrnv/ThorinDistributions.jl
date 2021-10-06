@@ -65,7 +65,7 @@ function UnivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2
     T = Base.promote_eltype(α,θ,[1.0]) # At least float.
     α = T.(α)
     θ = T.(θ)
-    tol = sqrt(eps(T)) # Arbitrary fixed tolerence ! 
+    tol = eps(T) # Arbitrary fixed tolerence ! 
     
     order = sortperm(θ)
     n = length(θ)
@@ -88,7 +88,7 @@ function UnivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2
             end
         end
     end
-    to_be_kept = (α .> tol) .& (θ .> tol)
+    to_be_kept = (α .> tol) .& (θ .> tol) .* (α.*θ .> tol)
     α = α[to_be_kept]
     θ = θ[to_be_kept]
 

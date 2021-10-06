@@ -134,12 +134,38 @@ function resampled_k_statistics(M,D::Vector{T},t_star,m; k_stats_funs::FastPols)
     return ks
 end
 
-function ugc_k_stats(α::Vector{T},θ::Vector{T},t_star,m) where T
-    # Theoretical version for univariate gamma convolutions.
+function ugc_k_stats_old(α::Vector{T},θ::Vector{T},t_star,m) where T
+    # We should make a test out of this one. 
     s = θ ./ (1 .- t_star .* θ)
     return [sum(α .* log.(1 .-s)), [sum(α.*(s.^i)) for i in 1:m]...]
 end
 ugc_k_stats(D::ThorinDistributions.UnivariateGammaConvolution,t_star,m) = ugc_k_stats(D.α,D.θ,t_star,m)
+
+function ugc_k_stats(α::Vector{T},θ::Vector{T},t_star,m) where T
+    # Theoretical version for univariate gamma convolutions.
+    s = θ ./ (1 .- t_star .* θ)
+    s_pow = deepcopy(s)
+    rez = Vector{T}(undef,(m+1,))
+    rez[1] = sum(α .* log.(1 .-s))
+    for i in 1:(m-1)
+        rez[i+1] = α's_pow
+        s_pow .*= s
+    end
+    rez[m+1] = α's_pow
+    return rez
+end
+
+function ugc_k_stats!(rez,s_pow,s,α,θ,t_star,m)
+    s .=  θ ./ (1 .- t_star .* θ)
+    s_pow .= s
+    rez[1] = sum(α .* log.(1 .-s))
+    for i in 1:(m-1)
+        rez[i+1] = α's_pow
+        s_pow .*= s
+    end
+    rez[m+1] = α's_pow
+end
+
 
 # weird idea, but might work...
 function correct_k_stats(k)

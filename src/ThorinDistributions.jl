@@ -11,6 +11,7 @@ import DynamicPolynomials
 import StaticPolynomials 
 import Polynomials
 import StatsBase
+import SparseArrays
 
 const na = [CartesianIndex()]
 include("Precomputations.jl")
@@ -23,5 +24,6 @@ include("MFKProjection.jl")
 include("kStats.jl")
 include("ThorinMoments.jl")
 include("HankelMatrices.jl")
+include("Dykstra.jl")
 
 end

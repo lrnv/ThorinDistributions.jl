@@ -23,6 +23,13 @@ struct MultivariateGammaConvolution{T<:Real, V<:AbstractVector{T}, M<: AbstractM
     constants::Int
 end
 
+n(x::MultivariateGammaConvolution) = length(x.α)
+
+function Base.show(io::IO, m::MultivariateGammaConvolution) 
+    println("Multivariate Gamma Convolutions with parametrisation:")
+    display([m.α m.θ])
+end
+
 #### Constructor :
 function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{T2}) where {T1 <: Real, T2<:Real}
 
@@ -34,8 +41,8 @@ function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{
      θ = T.(θ) # the size of theta is (n,d)
 
      # Remove alphas that are non-positives or thetas that are all zero.
-     if any(α .== T(0))
-         are_pos = α .!= T(0) | [all(θ[i,:] == 0) for i in 1:size(θ,1)]
+     if any(α .< eps(T))
+         are_pos = α .> eps(T) | [all(θ[i,:] .> 0) for i in 1:size(θ,1)]
          α = α[are_pos]
          θ = θ[are_pos,:]
      end
@@ -58,6 +65,9 @@ function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{
      if length(α) == 1
          return MultivariateGamma(α,θ[:,1])
      end
+     # sorting by alphas : 
+     θ =θ[sortperm(α),:]
+     sort!(α)
      return MultivariateGammaConvolution(α,θ, 1)
 end
 MultivariateGammaConvolution(α::T1,θ::AbstractVector{T2}) where {T1<:Real, T2<:Real} = MultivariateGamma(promote(α,θ)...)

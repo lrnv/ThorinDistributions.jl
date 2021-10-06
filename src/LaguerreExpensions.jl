@@ -7,7 +7,7 @@ This function produce the coefficients of the multivariate (tensorised) expensio
 it is based on some precomputations that are done in a certain precision.
 
 """
-function get_coefficients(α, θ, m)
+function get_coefficients(α, θ, m; P = nothing)
     # α must be an array with size (n,)
     # θ must be an array with size (n,d)
     # max_p must be a Tuple of integers with size (d,)
@@ -16,16 +16,16 @@ function get_coefficients(α, θ, m)
     θ = T.(θ)
 
     # Trim down null αs values:
-    are_pos = findall(α .!= 0)
+    are_pos = findall(α .> eps(T))
     if ndims(θ) == 1
         θ = θ[are_pos]
     else
         θ = θ[are_pos,:] # produces a matrix when θ is only a vector.. 
     end
     α = α[are_pos]
-
-    
-    P = get_precomp(T,sum(m))::PreComp{T}
+    if isnothing(P)
+        P = get_precomp(T,sum(m))::PreComp{T}
+    end
     coefs = zeros(T,m)
     build_coefficients!(coefs,α,θ,T(1.0),m,P)
     return coefs
@@ -101,21 +101,16 @@ function build_coefficients!(coefs::AbstractArray{T,1},α::AbstractArray{T,1},θ
     kappa[1] = sum(α .* log.(to_log))
     coefs[1] = mu[1] = exp(kappa[1]) # this is the only place kappa[1] is used. 
     #coefs[1] = mu[1] = prod(to_log .^ α)
-
     @inbounds for k in 2:m[1]
         # Main Computations:
         α .*= θ
-        # Note: Kappa[1] is not used here either.
-        kappa[k] = sum(α) * P.FACTS[k - 1]
-    
-        for j in 1:k-1
-            # Note: kappa[1] is not used here. 
-            @views mu[k] += mu[j] * kappa[k - j + 1] * P.BINS[j, k-1]
+        kappa[k] = sum(α)
+        @inbounds for j in 1:k-1
+            mu[k] += mu[j] * kappa[k-j+1]
         end
-        
-        @views coefs[k] = mu[1:k]'P.LAGUERRE[1:k, k]
+        mu[k] /= k-1
+        @views coefs[k] = P.LAGUERRE2[1:k, k]'mu[1:k]
     end
-    coefs .*= sqrt(2*cst1)
 end
 
 function build_coefficients!(coefs::AbstractArray{T,1},α::AbstractArray{T,1},θ::AbstractArray{T,2},cst1::T,m::NTuple{2, T2},P::PreComp{T}) where {T2 <: Int,T <: Real}
@@ -287,26 +282,3 @@ function αθ_from_par(par)
     return par[1:n].^2, par[(n+1):2n].^2
 end
 
-# """
-#     L2ObjectiveWithPenalty(par,emp_coefs)
-
-# A L2 distance to be minimized between laguerre coefficients of MultivariateGammaConvolutions and empirical laguerre coefficients.
-# This distance is some kind of very high degree polynomial * exponentials, so minimizing it is very hard.
-# This version includes a penalty to force parameters to go towards 0. but it is not yet working correctly.
-# """
-# function L2ObjectiveWithPenalty(par,emp_coefs)
-#     old_par = par[1:(length(par)-1)]
-#     loss = L2Objective(old_par,emp_coefs)
-#     lambda = last(par)^2
-#     penalty = lambda * sum(abs.(old_par))
-#     return loss + penalty
-# end
-
-# """
-#     minimum_m(n,d)
-
-# Computes the minimum integer m such that m^d > (d+1)n
-# """
-# function minimum_m(n,d)
-#     return Int(ceil(((d+1)n)^(1/d)))
-# end
