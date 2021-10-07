@@ -47,21 +47,6 @@ function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{
          θ = θ[are_pos,:]
      end
 
-     # regroup theta that are the sames :
-     n = size(θ,1)
-     for i in 1:(n-1)
-         if i >= size(θ,1)
-             break
-         end
-         for j in (i+1):size(θ,1)
-             if all(θ[i,:] == θ[j,:])
-                 α[i] += α[j]
-                 deleteat!(α,j)
-                 θ = θ[[1:(j-1),(j+1):size(θ,1)],:]
-                 j = j-1
-             end
-         end
-     end
      if length(α) == 1
          return MultivariateGamma(α,θ[:,1])
      end
