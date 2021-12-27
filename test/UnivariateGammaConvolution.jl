@@ -2,9 +2,7 @@ import ThorinDistributions
 using Test
 
 @testset "UnivariateGammaConvolution.jl tests" begin 
-
     dist = ThorinDistributions.UnivariateGammaConvolution([1,0.5, 3.7],[4,2, 10])
-   
     @testset "functions are working and consistant with past selves." begin
         spl = [
             44.21448353310021,
@@ -49,10 +47,6 @@ using Test
         @test x ≈ x_fixed
         @test y ≈ y_fixed
     end
-
-
-
-
     @testset "results of pdf and cdf are consistant with R coga" begin
         # We check against COGA from R on this simple example.
         # > library(coga)
@@ -99,7 +93,6 @@ using Test
         @test round.(p,digits=10) ≈ round.(pᵣ,digits=10)
         @test round.(c,digits=10) ≈ round.(cᵣ,digits=10)
     end
-
 end
 
 

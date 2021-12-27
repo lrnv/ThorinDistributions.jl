@@ -34,7 +34,7 @@ function compute_g(dist,n, integrator)
     residuals_g = deepcopy(g)
     for i in 0:(2n)
         g[i+1],residuals_g[i+1] = integrator(x -> (-x)^(i) * Distributions.pdf(dist,x) * exp(-x), 0, +Inf)
-        print("g_{",i,"} = ",Float64(g[i+1]),", rez = ",Float64(residuals_g[i+1]),"\n")
+        # print("g_{",i,"} = ",Float64(g[i+1]),", rez = ",Float64(residuals_g[i+1]),"\n")
     end
     return g
 end
@@ -143,6 +143,6 @@ function MFK_Projection(g_integrals::Vector{T},n) where T
     facts = factorial.(T.(0:2n))
     s = Array{T}(undef, 2n)
     build_s!(s,g_integrals,facts)
-    alpha,beta = MFK_end(s,n)
+    alpha,beta = MFK_end(s)
     return ThorinDistributions.UnivariateGammaConvolution(Float64.(alpha), Float64.(1 ./ beta))
 end

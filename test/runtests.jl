@@ -5,6 +5,8 @@ using TestSetExtensions
     @includetests ARGS
 end
 
+# You can use these with Pkg.test("MFKComputation") to run only the tests from the test/MFKComputation.jl file.
+
 
 
 # @testset verbose=true "ThorinDistributions.jl" begin

@@ -3,7 +3,6 @@ module ThorinDistributions
 import Distributions
 import Random
 import Statistics
-import DoubleExponentialFormulas
 import LinearAlgebra
 import PolynomialRoots
 import Combinatorics
