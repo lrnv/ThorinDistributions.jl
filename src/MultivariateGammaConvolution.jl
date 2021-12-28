@@ -20,7 +20,6 @@ julia> Random.rand!(dist,sample);
 struct MultivariateGammaConvolution{T<:Real, V<:AbstractVector{T}, M<: AbstractMatrix{T}} <: Distributions.ContinuousMultivariateDistribution where T
     α::V
     θ::M
-    constants::Int
 end
 
 n(x::MultivariateGammaConvolution) = length(x.α)
@@ -50,7 +49,7 @@ function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{
     θ = θ[are_pos,:] 
     θ = θ[sortperm(α),:]
     sort!(α)
-    return MultivariateGammaConvolution(α,θ, 1)
+    return MultivariateGammaConvolution(α,θ)
 end
 # MultivariateGammaConvolution(α::T1,θ::AbstractVector{T2}) where {T1<:Real, T2<:Real} = MultivariateGamma(promote(α,θ)...)
 MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2}) where {T1<:Real, T2<:Real} = UnivariateGammaConvolution(promote(α,θ)...)
@@ -67,10 +66,10 @@ end
 function Distributions._rand!(rng::Distributions.AbstractRNG, s::MultivariateGammaConvolution, x::AbstractVector{T}) where T<:Real
     x .= s.θ'rand.(rng,Distributions.Gamma.(s.α,1))
 end
-function _rand!(rng::Distributions.AbstractRNG, s::MultivariateGammaConvolution, A::DenseMatrix{T}) where T<:Real
-    Gs = Distributions.Gamma.(d.α,1)
+function Distributions._rand!(rng::Distributions.AbstractRNG, s::MultivariateGammaConvolution, A::DenseMatrix{T}) where T<:Real
+    Gs = Distributions.Gamma.(s.α,1)
     n = size(A,2)
-    A .= d.θ'transpose(hcat(rand.(rng,Gs,n)...))
+    A .= s.θ'transpose(hcat(rand.(rng,Gs,n)...)) 
 end
 function Base.rand(rng::Distributions.AbstractRNG,d::MultivariateGammaConvolution)
     d.θ'rand.(rng,Distributions.Gamma.(d.α,1))

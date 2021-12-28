@@ -20,7 +20,7 @@ end
 
 @testset "HankelMatrices.jl tests" begin 
 
-    m=20
+    m=5
     @polyvar x[1:m+1]
     H_low, H_up = vec.(ThorinDistributions.get_hankels(x,2,3))
     H_low_op, H_up_op = ThorinDistributions.vec_H.(ThorinDistributions.hankel_operators(m,2,3))
@@ -39,7 +39,7 @@ end
         @test get_hankels_truth(x,a,b) == ThorinDistributions.get_hankels(x,a,b)
     end
 
-    x = randn(100)
+    x = randn(10)
 
     @testset "coherence for random values" begin
         @test get_hankels_truth(x,0,1) == ThorinDistributions.get_hankels(x,0,1)
