@@ -21,8 +21,6 @@ function MoschopoulosParameters(α,θ)
 end
 Base.eltype(::MoschopoulosParameters{T}) where T = T
 
-
-
 """
     UnivariateGammaConvolution(α,θ)
 
@@ -126,7 +124,7 @@ end
 # Moshopoulos algorithm for pdf and cdf.
 function MoschopoulosAlgo!(d::UnivariateGammaConvolution,x::Real, which)
 
-    @assert(which in ["pdf","cdf"], "which should be etiher pdf or cdf")
+    @assert(which in ["pdf","cdf"], "which should be either pdf or cdf")
     T = Base.eltype(d)
     atol = eps(T)
     rtol = T(0)
@@ -152,11 +150,6 @@ function MoschopoulosAlgo!(d::UnivariateGammaConvolution,x::Real, which)
         elseif which == "cdf"
             step = d.P.δ[k+1] * Distributions.cdf(dist,x)
         end
-        # if ((!isfinite(step)) & (x > T(0)))
-        #     print("x = ", x)
-        #     print(d)
-        #     error("mince")
-        # end
         @assert(!((!isfinite(step)) & (x > T(0))),"inf or nan append, the algorithm did not converge for x = $x")
         out += step
         if isapprox(step,T(0),atol=atol,rtol=rtol)

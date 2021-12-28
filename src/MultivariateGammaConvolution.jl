@@ -33,7 +33,6 @@ end
 #### Constructor :
 function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{T2}) where {T1 <: Real, T2<:Real}
 
-
     @assert(length(α) == size(θ,1),"You must provide α with same length as the number of rows in θ")
     # Propote eltypes :
     T = Base.promote_eltype(α,θ,[1.0])
@@ -86,19 +85,5 @@ function Distributions._logpdf(d::MultivariateGammaConvolution{T}, x::AbstractAr
 end
 
 
-# mean(d::MultivariateGamma) = d.α .* d.θ
-# var(d::MultivariateGamma) = d.α .* d.θ .* d.θ
-# Statistics.cov(d::MultivariateGamma) = d.α .* d.θ[na,:] .* d.θ[:,na]
-
-
-# Okay this should be enough to obtain a pdf
-
-# dist = MultivariateGammaConvolution([2,3,1],[3 0;4 0;0 1])
-# sample = zeros(Float64,(2,10))
-# import Random
-# Random.rand!(dist,sample)
-# display(sample)
-#
-#
-# display(Distributions.pdf(dist,sample))
-# display(Distributions.pdf(Distributions.Gamma(dist.α,dist.θ[1]),sample[1,:]))
+mean(d::MultivariateGammaConvolution) = sum(d.α .* d.θ,axis=1)
+var(d::MultivariateGamma) = sum(d.α .* d.θ .* d.θ,axis=1)

@@ -16,63 +16,39 @@ julia> sample = zeros(Float64,(3,10));
 julia> Random.rand!(dist,sample);
 ```
 """
-struct MultivariateGamma{T<:Real, V<:AbstractVector{T}, M<:Distributions.Gamma{T} } <: Distributions.ContinuousMultivariateDistribution where T
-    α::T
+struct MultivariateGamma{T<:Real, V<:AbstractVector{T}, M<:Distributions.Gamma{T}} <: Distributions.ContinuousMultivariateDistribution where T
     θ::V
-    Γα::M
+    G::M
 end
 
 #### Constructor :
 function MultivariateGamma(α::T1,θ::AbstractVector{T2}) where {T1 <: Real, T2<:Real}
      T = Base.promote_eltype([α],θ,[1.0])
-     α = T(α)
      θ = T.(θ)
-     MultivariateGamma(α,θ,Distributions.Gamma(α,T(1)))
+     MultivariateGamma(α,θ,Distributions.Gamma(T(α),T(1)))
 end
 MultivariateGamma(α::T1,θ::T2) where {T1<:Real, T2<:Real} = Distributions.Gamma(promote(α,θ)...)
 
-#### eltype, length, support
 Base.eltype(d::MultivariateGamma) = typeof(d.α)
 Base.length(d::MultivariateGamma) = length(d.θ)
 function Distributions.insupport(d::MultivariateGamma,x::AbstractVector{T}) where {T <: Real}
     # for theta that are 0, x must be 0
     # for other theta, x/theta must be a constant.
-    j = 0
-    for i in 1:length(x)
-        if d.θ[i] == T(0)
-            if not x[i] == T(0)
-                return false
-            end
-        else
-            j = i
-        end
+    if any(x[theta .== 0] != 0)
+        return false
     end
-    if j == 0
-        # then all theta are 0 and all x are 0
-        return true
-    end
-    constant = x[j]/d.θ[j]
-    for i in 1:length(x)
-        if d.θ[i] != 0
-            # for stability issue, we doubled the tolerence of the type. Otherwise even simulations are not inbounds, which causes pdf == 0 on simulated data !
-            if !isapprox(x[i]/d.θ[i],constant,atol=2*eps(T),rtol=T(0))
-                return false
-            end
-        end
-    end
-    return true
+    return all(y -> isapprox(y,first(x),atol=2*eps(T),rtol=T(0)), (x/theta)[theta .!= 0])
 end
 
 #### Sampling
 struct MGSPL <: Distributions.Sampleable{Distributions.Multivariate,Distributions.Continuous}
-    α
     θ
-    Γα
+    G
 end
-Distributions.sampler(d::MultivariateGamma) = MGSPL(d.α,d.θ,d.Γα)
+Distributions.sampler(d::MultivariateGamma) = MGSPL(d.θ,d.G)
 Base.length(s::MGSPL) = length(s.θ)
 function Distributions._rand!(rng::Distributions.AbstractRNG, s::MGSPL, x::AbstractVector{T}) where T<:Real
-    x .= s.θ .* rand(rng,s.Γα) # simulate a gamma(alpha,1) and multiply by theta
+    x .= s.θ .* rand(rng,s.G)
 end
 
 #### Logpdf
@@ -82,7 +58,7 @@ function Distributions._logpdf(d::MultivariateGamma{T}, x::AbstractArray) where 
     end
     for i in 1:length(x)
         if d.θ[i] != 0
-            return log(Distributions.pdf(d.Γα,x[i]/d.θ[i])/d.θ[i])
+            return log(Distributions.pdf(d.G,x[i]/d.θ[i])/d.θ[i])
         end
     end
     print("we go there")
@@ -90,19 +66,6 @@ function Distributions._logpdf(d::MultivariateGamma{T}, x::AbstractArray) where 
 end
 
 
-mean(d::MultivariateGamma) = d.α .* d.θ
-var(d::MultivariateGamma) = d.α .* d.θ .* d.θ
-Statistics.cov(d::MultivariateGamma) = d.α .* d.θ[na,:] .* d.θ[:,na]
-
-
-# # Okay this should be enough to obtain a pdf
-#
-# dist = MultivariateGamma(2,[3,4,5])
-# sample = zeros(Float64,(3,10))
-# import Random
-# Random.rand!(dist,sample)
-# display(sample)
-#
-#
-# display(Distributions.pdf(dist,sample))
-# display(Distributions.pdf(Distributions.Gamma(dist.α,dist.θ[1]),sample[1,:]))
+mean(d::MultivariateGamma) = d.G.α .* d.θ
+var(d::MultivariateGamma) = d.G.α .* d.θ .* d.θ
+Statistics.cov(d::MultivariateGamma) = d.G.α .* d.θ[na,:] .* d.θ[:,na]
