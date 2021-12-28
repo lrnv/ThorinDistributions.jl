@@ -20,6 +20,7 @@ julia> Random.rand!(dist,sample);
 struct MultivariateGammaConvolution{T<:Real, V<:AbstractVector{T}, M<: AbstractMatrix{T}} <: Distributions.ContinuousMultivariateDistribution where T
     α::V
     θ::M
+    constant::Int
 end
 
 n(x::MultivariateGammaConvolution) = length(x.α)
@@ -49,7 +50,7 @@ function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{
     θ = θ[are_pos,:] 
     θ = θ[sortperm(α),:]
     sort!(α)
-    return MultivariateGammaConvolution(α,θ)
+    return MultivariateGammaConvolution(α,θ,1)
 end
 # MultivariateGammaConvolution(α::T1,θ::AbstractVector{T2}) where {T1<:Real, T2<:Real} = MultivariateGamma(promote(α,θ)...)
 MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2}) where {T1<:Real, T2<:Real} = UnivariateGammaConvolution(promote(α,θ)...)
