@@ -1,9 +1,9 @@
 const MAX_M = 1000
 
 struct PreComp{T}
-    BINS::SparseArrays.SparseMatrixCSC{T,Int32}
-    LAGUERRE::SparseArrays.SparseMatrixCSC{T,Int32}
-    LAGUERRE2::SparseArrays.SparseMatrixCSC{T,Int32}
+    BINS::SparseArrays.SparseMatrixCSC{T,Int}
+    LAGUERRE::SparseArrays.SparseMatrixCSC{T,Int}
+    LAGUERRE2::SparseArrays.SparseMatrixCSC{T,Int}
     FACTS::Vector{T}
 end
 
