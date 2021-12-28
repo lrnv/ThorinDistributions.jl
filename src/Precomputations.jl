@@ -1,4 +1,4 @@
-const MAX_M = 1000
+const MAX_M = 100
 
 struct PreComp{T}
     BINS::SparseArrays.SparseMatrixCSC{T,Int}
@@ -30,9 +30,7 @@ function bigfloat_precomputations(m)
     PreComp(BINS,LAGUERRE,LAGUERRE2,FACTS)
 end
 
-const big_P = bigfloat_precomputations(MAX_M)
-
-const Precomp_Dict = Dict{Tuple{Int64,DataType},Any}((MAX_M,BigFloat)=>big_P)
+const Precomp_Dict = Dict{Tuple{Int64,DataType},Any}((MAX_M,BigFloat)=>bigfloat_precomputations(MAX_M))
 
 """
     get_precomp(type,m)
@@ -44,14 +42,20 @@ function get_precomp(type::DataType,m::T) where {T <: Int}
     if (m,type) in keys(Precomp_Dict)
         return Precomp_Dict[(m,type)]::PreComp{type}
     end
-    # if this is not the case, we will just construct it :
+    # # if this is not the case, we will just construct it :
+    # if m > MAX_M
+    #     error("You ask for too much")
+    # end
+    # P = big_P
     if m > MAX_M
-        error("You ask for too much")
+        Precomp_Dict[(m,BigFloat)] = bigfloat_precomputations(m)
     end
-    P = big_P
+    P = Precomp_Dict[max(m,MAX_M),BigFloat]
     Precomp_Dict[(m,type)] = PreComp(type.(P.BINS[1:m,1:m]),type.(P.LAGUERRE[1:m,1:m]),type.(P.LAGUERRE2[1:m,1:m]),type.(P.FACTS[1:m]))
     return Precomp_Dict[(m,type)]::PreComp{type}
 end
+
+
 
 
 
