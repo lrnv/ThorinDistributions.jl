@@ -52,7 +52,7 @@ function MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractMatrix{
     sort!(α)
     return MultivariateGammaConvolution(α,θ, 1)
 end
-MultivariateGammaConvolution(α::T1,θ::AbstractVector{T2}) where {T1<:Real, T2<:Real} = MultivariateGamma(promote(α,θ)...)
+# MultivariateGammaConvolution(α::T1,θ::AbstractVector{T2}) where {T1<:Real, T2<:Real} = MultivariateGamma(promote(α,θ)...)
 MultivariateGammaConvolution(α::AbstractVector{T1},θ::AbstractVector{T2}) where {T1<:Real, T2<:Real} = UnivariateGammaConvolution(promote(α,θ)...)
 
 
@@ -64,16 +64,16 @@ function Distributions.insupport(d::MultivariateGammaConvolution,x::AbstractVect
 end
 
 #### Sampling
-struct MGCSPL <: Distributions.Sampleable{Distributions.Multivariate,Distributions.Continuous}
-    Γs::AbstractVector{MGSPL}
+function Distributions._rand!(rng::Distributions.AbstractRNG, s::MultivariateGammaConvolution, x::AbstractVector{T}) where T<:Real
+    x .= s.θ'rand.(rng,Distributions.Gamma.(s.α,1))
 end
-Distributions.sampler(d::MultivariateGammaConvolution) = MGCSPL([Distributions.sampler(MultivariateGamma(d.α[i],d.θ[i,:])) for i in 1:length(d.α)])
-Base.length(s::MGCSPL) = length(s.Γs[1].θ)
-function Distributions._rand!(rng::Distributions.AbstractRNG, s::MGCSPL, x::AbstractVector{T}) where T<:Real
-    x .= T(0)
-    for i in 1:length(s.Γs)
-        x .+= rand(rng,s.Γs[i])
-    end
+function _rand!(rng::Distributions.AbstractRNG, s::MultivariateGammaConvolution, A::DenseMatrix{T}) where T<:Real
+    Gs = Distributions.Gamma.(d.α,1)
+    n = size(A,2)
+    A .= d.θ'transpose(hcat(rand.(rng,Gs,n)...))
+end
+function Base.rand(rng::Distributions.AbstractRNG,d::MultivariateGammaConvolution)
+    d.θ'rand.(rng,Distributions.Gamma.(d.α,1))
 end
 
 #### Logpdf
@@ -86,4 +86,4 @@ end
 
 
 mean(d::MultivariateGammaConvolution) = sum(d.α .* d.θ,axis=1)
-var(d::MultivariateGamma) = sum(d.α .* d.θ .* d.θ,axis=1)
+var(d::MultivariateGammaConvolution) = sum(d.α .* d.θ .* d.θ,axis=1)
