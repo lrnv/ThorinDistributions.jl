@@ -27,7 +27,7 @@ import Random, Distributions
     data2 = θ0'data2
     
     @testset "sampling a multivariate gamma convolution works as expected." begin
-        @test data == data2
+        @test data ≈ data2
     end 
 
 end
