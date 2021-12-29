@@ -3,6 +3,7 @@ const MAX_M = 100
 struct PreComp{T}
     BINS::SparseArrays.SparseMatrixCSC{T,Int}
     LAGUERRE::SparseArrays.SparseMatrixCSC{T,Int}
+    LAGUERRE_NOTSPARSE::Matrix{T}
     LAGUERRE2::SparseArrays.SparseMatrixCSC{T,Int}
     FACTS::Vector{T}
 end
@@ -23,11 +24,12 @@ function bigfloat_precomputations(m)
         LAGUERRE[j,i] = BINS[j,i]/FACTS[j]*(-big(2))^(j-1)
         LAGUERRE2[j,i] = LAGUERRE[j,i] * sqrt(big(2)) * FACTS[j]
     end
+    LAGUERRE_NOTSPARSE = deepcopy(LAGUERRE)
     LAGUERRE = SparseArrays.sparse(LAGUERRE)
     LAGUERRE2 = SparseArrays.sparse(LAGUERRE2)
     BINS = SparseArrays.sparse(BigFloat.(BINS))
     FACTS = BigFloat.(FACTS)
-    PreComp(BINS,LAGUERRE,LAGUERRE2,FACTS)
+    PreComp(BINS,LAGUERRE,LAGUERRE_NOTSPARSE,LAGUERRE2,FACTS)
 end
 
 const Precomp_Dict = Dict{Tuple{Int64,DataType},Any}((MAX_M,BigFloat)=>bigfloat_precomputations(MAX_M))
@@ -51,7 +53,13 @@ function get_precomp(type::DataType,m::T) where {T <: Int}
         Precomp_Dict[(m,BigFloat)] = bigfloat_precomputations(m)
     end
     P = Precomp_Dict[max(m,MAX_M),BigFloat]
-    Precomp_Dict[(m,type)] = PreComp(type.(P.BINS[1:m,1:m]),type.(P.LAGUERRE[1:m,1:m]),type.(P.LAGUERRE2[1:m,1:m]),type.(P.FACTS[1:m]))
+    Precomp_Dict[(m,type)] = PreComp(
+        type.(P.BINS[1:m,1:m]),
+        type.(P.LAGUERRE[1:m,1:m]),
+        type.(P.LAGUERRE_NOTSPARSE[1:m,1:m]),
+        type.(P.LAGUERRE2[1:m,1:m]),
+        type.(P.FACTS[1:m])
+    )
     return Precomp_Dict[(m,type)]::PreComp{type}
 end
 
