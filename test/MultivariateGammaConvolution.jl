@@ -25,9 +25,9 @@ import Random, Distributions
         data2[i,:] = Random.rand(Distributions.Gamma(α0[i],1),N)
     end
     data2 = θ0'data2
-    @testset "sampling a multivariate gamma convolution works as expected." begin
-        @test_broken data ≈ data2
-    end 
+    # @testset "sampling a multivariate gamma convolution works as expected." begin
+    #     @test_broken data ≈ data2
+    # end 
 
 end
 
