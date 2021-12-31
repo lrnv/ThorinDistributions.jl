@@ -11,6 +11,7 @@ import StaticPolynomials
 import Polynomials
 import StatsBase
 import SparseArrays
+import StaticArrays
 
 const na = [CartesianIndex()]
 include("Precomputations.jl")
